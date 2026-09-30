@@ -10,7 +10,7 @@ El sistema mantiene una representación digital alimentada por el transporte obs
 
 ## Objetivo general
 
-Implementar una cadena de adquisición, tratamiento, almacenamiento y visualización de datos de transporte en tiempo real, incorporando contexto meteorológico y una comparación entre un modelo de ETA y una estimación cinemática sencilla.
+Implementar una cadena de adquisición, tratamiento, almacenamiento y visualización de datos de transporte en tiempo real, incorporando contexto meteorológico, simulación de escenarios y actuación sobre una flota controlada, además de comparar un modelo de ETA con una estimación cinemática sencilla.
 
 ## Objetivos específicos
 
@@ -24,6 +24,8 @@ Implementar una cadena de adquisición, tratamiento, almacenamiento y visualizac
 8. Formular una decisión meteorológica que trate explícitamente los datos ausentes y caducados.
 9. Entrenar un regresor de tiempo de llegada y evaluar sus predicciones frente a una línea base, diferenciando horizontes y estados de marcha.
 10. Organizar el arranque, cierre y conservación de datos del laboratorio.
+11. Reconstruir una ruta real, calibrar un modelo cinemático y asimilar posiciones observadas.
+12. Comparar escenarios y retenciones con una regla que consulte el estado de la simulación.
 
 # Arquitectura y entorno
 
@@ -39,6 +41,7 @@ La configuración de [Docker Compose](https://docs.docker.com/compose/) define c
 | Grafana | Paneles y alertas sobre el histórico | `http://localhost:3000` |
 | MQTTX | Inspección de topics y mensajes | Aplicación de escritorio |
 | Servicio Python ETA | Inferencia y puntuación de predicciones | Proceso externo a los cuatro contenedores |
+| Simulador Python | Escenarios, asimilación y retención de vehículos simulados | Proceso externo conectado al broker local |
 
 El procesamiento sigue la organización de flujos, mensajes y contexto de [Node-RED](https://nodered.org/docs/user-guide/). Utiliza `node-red-contrib-influxdb` y `node-red-contrib-web-worldmap`. El servicio Python emplea pandas, el cliente de InfluxDB, Paho MQTT, scikit-learn y LightGBM.
 

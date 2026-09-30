@@ -12,7 +12,7 @@ El sistema mantiene una representación digital alimentada por el transporte obs
 
 ### Objetivo general
 
-Implementar una cadena de adquisición, tratamiento, almacenamiento y visualización de datos de transporte en tiempo real, incorporando contexto meteorológico y una comparación entre un modelo de ETA y una estimación cinemática sencilla.
+Implementar una cadena de adquisición, tratamiento, almacenamiento y visualización de datos de transporte en tiempo real, incorporando contexto meteorológico, simulación de escenarios y actuación sobre una flota controlada, además de comparar un modelo de ETA con una estimación cinemática sencilla.
 
 ### Objetivos específicos
 
@@ -43,6 +43,7 @@ La configuración de [Docker Compose](https://docs.docker.com/compose/) define c
 | Grafana | Paneles y alertas sobre el histórico | `http://localhost:3000` |
 | MQTTX | Inspección de topics y mensajes | Aplicación de escritorio |
 | Servicio Python ETA | Inferencia y puntuación de predicciones | Proceso externo a los cuatro contenedores |
+| Simulador Python | Escenarios, asimilación y retención de vehículos simulados | Proceso externo conectado al broker local |
 
 El procesamiento sigue la organización de flujos, mensajes y contexto de [Node-RED](https://nodered.org/docs/user-guide/). Utiliza `node-red-contrib-influxdb` y `node-red-contrib-web-worldmap`. El servicio Python emplea pandas, el cliente de InfluxDB, Paho MQTT, scikit-learn y LightGBM.
 

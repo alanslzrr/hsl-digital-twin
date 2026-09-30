@@ -374,7 +374,7 @@ La irregularidad es el coeficiente de variación del espaciado sobre la ruta, ca
 
 ### S2 · Escenarios controlados
 
-El ensayo MQTT utiliza una semilla fija y factor temporal diez. Cada fase dura treinta minutos simulados, aproximadamente tres minutos de reloj, aunque el procesamiento introduce un pequeño desfase. Los comandos quedan registrados y aparecen como anotaciones de Grafana. Después de cada perturbación se restaura el nominal para observar su evolución antes de introducir la siguiente.
+El ensayo MQTT utiliza la ruta sintética, una semilla fija y factor temporal diez. Cada fase dura treinta minutos simulados, aproximadamente tres minutos de reloj, aunque el procesamiento introduce un pequeño desfase. Los comandos quedan registrados y aparecen como anotaciones de Grafana. Después de cada perturbación se restaura el nominal para observar su evolución antes de introducir la siguiente.
 
 | Fase | CV al final de la fase | Retraso medio, s | Vehículos |
 | --- | --- | --- | --- |
@@ -385,7 +385,7 @@ El ensayo MQTT utiliza una semilla fija y factor temporal diez. Cada fase dura t
 | Nominal tras corte | 1.436 | -1459.7 | 4 |
 | Refuerzo +2 | 0.770 | -876.9 | 6 |
 
-El signo del retraso sigue HSL, negativo significa llegar tarde. La nieve añade ocho segundos por parada y reduce la velocidad al setenta por ciento. Su retirada mejora parte del retraso, pero no devuelve automáticamente la regularidad inicial. El corte concentra la flota y la recuperación nominal no deshace el agrupamiento durante los treinta minutos simulados observados. Es persistencia dentro de este horizonte, no una demostración de irreversibilidad para cualquier duración. El refuerzo de dos vehículos reduce el CV al final de la fase, aunque continúa lejos del nominal.
+El signo del retraso sigue HSL, negativo significa llegar tarde. Los valores de esta tabla se comparan con el horario nominal interno del simulador, no con el horario comercial ni con el retraso publicado por HSL. El tiempo nominal combina marcha y paradas y aplica un factor 1,3 al tiempo de recorrido a velocidad de crucero; ese coeficiente pertenece al modelo y no se estimó con los datos GPS. La nieve añade ocho segundos por parada y reduce la velocidad al setenta por ciento. Su retirada mejora parte del retraso, pero no devuelve automáticamente la regularidad inicial. El corte concentra la flota y la recuperación nominal no deshace el agrupamiento durante los treinta minutos simulados observados. Es persistencia dentro de este horizonte, no una demostración de irreversibilidad para cualquier duración. El refuerzo de dos vehículos reduce el CV al final de la fase, aunque continúa lejos del nominal.
 
 ![Figura 14. Paneles del ensayo con cambios de escenario, residuos y velocidades](screenshots/grafana-simulacion.jpg)
 
@@ -440,7 +440,7 @@ La [regla de retención](https://github.com/alanslzrr/hsl-digital-twin/blob/main
 
 La prueba MQTT autorizó sesenta segundos con CV prácticamente cero y el simulador registró la aplicación. Tras un corte, rechazó una solicitud de doscientos cuarenta segundos con CV 0,403. Se guardaron autorización, aplicación y bloqueo en InfluxDB. Los identificadores de solicitud evitan repetir una orden y las peticiones sin KPI vigente o dirigidas a un operador real se rechazan.
 
-Para medir el efecto de la espera se ejecutaron ensayos pareados con igual semilla y estado inicial, sin sincronización que borrase la perturbación. Todos arrancan con CV 0,111. Se observan noventa minutos simulados desde la orden y se considera recuperación mantener CV menor o igual a 0,3 durante cinco minutos consecutivos, contados desde el final de la parada retenida.
+Para medir el efecto de la espera se ejecutaron ensayos pareados con igual semilla y estado inicial, sin sincronización que borrase la perturbación. Esta comparación utiliza la ruta sintética y los parámetros nominales, no la calibración de la línea 4. Todos arrancan con CV 0,111. Se observan noventa minutos simulados desde la orden y se considera recuperación mantener CV menor o igual a 0,3 durante cinco minutos consecutivos, contados desde el final de la parada retenida.
 
 | Retención, s | CV máximo en el horizonte | Recuperación según el criterio |
 | --- | --- | --- |

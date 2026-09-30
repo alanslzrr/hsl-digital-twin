@@ -1,0 +1,1 @@
+{"vehiculos": 4, "headway_medio_s": 897.988748412383, "irregularidad": 0.40907860522323186, "retraso_medio_s": -368.8798734840201, "t_sim_s": 1381.0, "escenario": "normal", "beta": 0.0, "factor_velocidad": 1.0, "dwell_extra": 0.0, "ganancia": 1.0, "oper_sim": "9999", "ts": "2026-09-30T15:19:00.242Z", "run_id": "demo-simulacion-20260930", "factor_tiempo": 1}

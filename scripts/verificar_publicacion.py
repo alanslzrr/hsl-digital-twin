@@ -32,3 +32,14 @@ if errors:
     raise SystemExit('\n'.join(errors))
 print(f'Publicación revisada: {len(list(filter(None, files)))} archivos; sintaxis y métricas correctas.')
 print('La búsqueda de patrones no sustituye una revisión humana de secretos o capturas.')
+
+cal=json.loads((ROOT / 'results/calibracion-simulacion.json').read_text())
+live=json.loads((ROOT / 'results/sincronizacion-simulacion.json').read_text())
+experiments=json.loads((ROOT / 'results/simulacion-experimentos.json').read_text())
+assert len(live['filas']) == 4
+assert all(row['n'] == 30 and row['duracion_observacion_real_s'] >= 1800 and row['alineaciones_excluidas'] == 1 for row in live['filas'])
+assert len({row['veh_real'] for row in live['filas']}) == 4
+assert sum(cal['histograma_real']['frecuencias']) == cal['histograma_real']['n']
+assert sum(experiments['histograma_simulado']['frecuencias']) == experiments['histograma_simulado']['n']
+assert [row['retencion_s'] for row in experiments['retenciones']] == [0, 60, 120, 240]
+print('Simulación revisada: cuatro parejas, treinta minutos de observación y ensayos pareados coherentes.')

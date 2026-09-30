@@ -1,0 +1,99 @@
+{
+  "id": 1,
+  "uid": "retraso-linea-4",
+  "orgID": 1,
+  "folderUID": "flota",
+  "ruleGroup": "flota",
+  "title": "Retraso línea 4 mayor de 5 min",
+  "condition": "C",
+  "data": [
+    {
+      "refId": "A",
+      "queryType": "",
+      "relativeTimeRange": {
+        "from": 900,
+        "to": 0
+      },
+      "datasourceUid": "influx-flota",
+      "model": {
+        "intervalMs": 1000,
+        "maxDataPoints": 43200,
+        "query": "from(bucket: \"flota\")\n  |> range(start: -15m)\n  |> filter(fn: (r) => r._measurement == \"vehiculo\" and r._field == \"retraso_s\" and r.linea == \"4\" and not exists r.evento)\n  |> last()",
+        "refId": "A"
+      }
+    },
+    {
+      "refId": "B",
+      "queryType": "",
+      "relativeTimeRange": {
+        "from": 0,
+        "to": 0
+      },
+      "datasourceUid": "__expr__",
+      "model": {
+        "expression": "A",
+        "intervalMs": 1000,
+        "maxDataPoints": 43200,
+        "reducer": "last",
+        "refId": "B",
+        "settings": {
+          "mode": "dropNN"
+        },
+        "type": "reduce"
+      }
+    },
+    {
+      "refId": "C",
+      "queryType": "",
+      "relativeTimeRange": {
+        "from": 0,
+        "to": 0
+      },
+      "datasourceUid": "__expr__",
+      "model": {
+        "conditions": [
+          {
+            "evaluator": {
+              "params": [
+                -300
+              ],
+              "type": "lt"
+            },
+            "operator": {
+              "type": "and"
+            },
+            "query": {
+              "params": [
+                "C"
+              ]
+            },
+            "reducer": {
+              "params": [],
+              "type": "last"
+            },
+            "type": "query"
+          }
+        ],
+        "expression": "B",
+        "intervalMs": 1000,
+        "maxDataPoints": 43200,
+        "refId": "C",
+        "type": "threshold"
+      }
+    }
+  ],
+  "updated": "2026-09-29T12:57:25Z",
+  "noDataState": "NoData",
+  "execErrState": "Error",
+  "for": "10s",
+  "keep_firing_for": "0s",
+  "annotations": {
+    "summary": "Un vehículo de la línea 4 lleva más de 300 s de retraso"
+  },
+  "labels": {
+    "linea": "4"
+  },
+  "isPaused": false,
+  "notification_settings": null,
+  "record": null
+}

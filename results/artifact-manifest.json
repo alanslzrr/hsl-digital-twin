@@ -1,0 +1,16 @@
+[
+  {
+    "archivo": "errores-v2-ventana-cerrada.csv",
+    "bytes": 3086490,
+    "sha256": "a2fec2a48ae695b4618a92bc6895034bc8406f42d0b5760efce66dd0f553c974",
+    "incluido": false,
+    "motivo": "Se conserva localmente; el repositorio contiene los resultados agregados, no el histórico individual ni el modelo binario."
+  },
+  {
+    "archivo": "eta_model.pkl",
+    "bytes": 1106090,
+    "sha256": "86ea4ba56951325d1e12318c21d5910b3eaa4207255c4161bdb4d2ab82580676",
+    "incluido": false,
+    "motivo": "Se conserva localmente; el repositorio contiene los resultados agregados, no el histórico individual ni el modelo binario."
+  }
+]

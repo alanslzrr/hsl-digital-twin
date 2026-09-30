@@ -1,0 +1,18 @@
+{
+  "metodo": "v2",
+  "desde": "2026-09-29T13:51:58.166Z",
+  "hasta": "2026-09-29T15:54:04.165Z",
+  "servicio_parado": "2026-09-29T15:54:21Z",
+  "n": 20786,
+  "mae_base_s": 29.39,
+  "mae_modelo_s": 15.89,
+  "nota": "El MAE global del modelo es más bajo porque la línea base se dispara con el tranvía parado. En marcha y a menos de 30 s, el grupo mayor, gana la línea base.",
+  "cortes": [
+    {"horizonte": "lt30", "marcha": "marcha", "n": 9777, "mae_base_s": 3.98, "mae_modelo_s": 11.62},
+    {"horizonte": "lt30", "marcha": "parado", "n": 271, "mae_base_s": 58.11, "mae_modelo_s": 26.86},
+    {"horizonte": "30a60", "marcha": "marcha", "n": 5391, "mae_base_s": 14.38, "mae_modelo_s": 11.58},
+    {"horizonte": "30a60", "marcha": "parado", "n": 839, "mae_base_s": 107.27, "mae_modelo_s": 9.83},
+    {"horizonte": "gt60", "marcha": "marcha", "n": 3453, "mae_base_s": 39.81, "mae_modelo_s": 29.54},
+    {"horizonte": "gt60", "marcha": "parado", "n": 1055, "mae_base_s": 238.09, "mae_modelo_s": 34.88}
+  ]
+}

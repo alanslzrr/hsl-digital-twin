@@ -1,0 +1,38 @@
+{
+  "posiciones_1hz": 8205,
+  "llegadas_ars": 70,
+  "filas": 6250,
+  "vehiculos": [
+    "00415",
+    "00420",
+    "00426",
+    "00435",
+    "00633",
+    "00637",
+    "00644",
+    "00648"
+  ],
+  "desde": "2026-09-29T12:52:11.177000+00:00",
+  "hasta": "2026-09-29T13:06:31.191000+00:00",
+  "corte": "2026-09-29T13:02:55.400600+00:00",
+  "train": 5000,
+  "test": 1250,
+  "mae_base_s": 33.82,
+  "mae_modelo_s": 15.96,
+  "importancia": {
+    "retraso_s": 3683,
+    "spd": 1778,
+    "hora": 655,
+    "dia_semana": 0,
+    "dist_parada_m": 2419,
+    "retraso_medio_linea": 3465,
+    "nieve_cm_h": 0
+  },
+  "test_parado": 398,
+  "test_marcha": 852,
+  "mae_base_parado_s": 76.5,
+  "mae_modelo_parado_s": 19.86,
+  "mae_base_marcha_s": 13.89,
+  "mae_modelo_marcha_s": 14.15,
+  "span_horas": 0.239
+}

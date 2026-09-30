@@ -46,7 +46,7 @@ for gain in gains:
    if result:
     row={'ganancia':gain,'t_sim_s':t,'residuo_m':result['residuo_m'],'residuo_posterior_m':result['residuo_posterior_m']};traces.append(row);errs.append(row)
  train=[e['residuo_m'] for e in errs if e['t_sim_s']<=900];test=[e['residuo_m'] for e in errs if e['t_sim_s']>900]
- def stats(values):return {'n':len(values),'mae_m':float(np.mean(np.abs(values))),'rmse_m':float(np.sqrt(np.mean(np.square(values)))),'media_m':float(np.mean(values))}
+ def stats(values):return {'n':len(values),'mae_m':float(np.mean(np.abs(values))),'rmse_m':float(np.sqrt(np.mean(np.square(values)))),'media_m':float(np.mean(values)),'varianza_m2':float(np.var(values))}
  gain_rows.append({'ganancia':gain,'seleccion_15min':stats(train),'evaluacion_15min':stats(test)})
 selected=min(gain_rows,key=lambda r:r['seleccion_15min']['rmse_m'])['ganancia']
 summary['ganancia']={'seleccionada':selected,'referencia':.3,'filas':gain_rows,'desde':start.isoformat(),'hasta':x['_time'].iloc[-1].isoformat(),'descripcion':'reproducción de posiciones reales archivadas; selección con la primera mitad, comparación con la segunda; residuos previos a corregir'}

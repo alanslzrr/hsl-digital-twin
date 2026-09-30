@@ -416,7 +416,7 @@ Ambas distribuciones incluyen detenciones y marcha. La simulación concentra la 
 
 Cada minuto se proyecta una posición real reciente sobre el sentido correspondiente y se calcula el residuo firmado entre observación y predicción. La corrección añade al estado la ganancia multiplicada por ese residuo. Una ganancia uno copia la posición en el instante de corrección; el residuo que se evalúa es el anterior, después de haber evolucionado durante el minuto. El residuo posterior sería cero por construcción y no serviría para valorar la predicción.
 
-La selección de ganancia compara 0,1, 0,3, 0,5, 0,7 y 1 sobre un registro real archivado. Los primeros quince minutos seleccionan por RMSE y los quince siguientes se reservan para evaluación. Se eligió uno; en la parte reservada el RMSE fue 106,02 metros frente a 201,21 con ganancia 0,3, y el MAE 85,14 frente a 151,28 metros. Esta comparación es una reproducción cronológica del registro, distinta de la observación en vivo posterior.
+La selección de ganancia compara 0,1, 0,3, 0,5, 0,7 y 1 sobre un registro real archivado. Los primeros quince minutos seleccionan por RMSE y los quince siguientes se reservan para evaluación. Se eligió uno. La varianza también favorece la ganancia elegida en la mitad de selección, 8 146,52 m² frente a 27 583,56 m² con ganancia 0,3. Esta comprobación coincide con el criterio de RMSE y no utiliza la mitad reservada para elegir. En la parte reservada el RMSE fue 106,02 metros frente a 201,21 con ganancia 0,3, y el MAE 85,14 frente a 151,28 metros. Esta comparación es una reproducción cronológica del registro, distinta de la observación en vivo posterior.
 
 ![Figura 17. Residuos antes de corregir con ganancia 0,3 y con la seleccionada](diagrams/sim-ganancia.svg)
 

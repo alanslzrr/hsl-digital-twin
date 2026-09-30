@@ -295,7 +295,7 @@ def main():
                             try:
                                 tp=datetime.fromisoformat(pos['ts'].replace('Z','+00:00')).timestamp()
                                 te=datetime.fromisoformat(est['ts'].replace('Z','+00:00')).timestamp()
-                                if est.get('linea')!=str(int(a.sync)-1000) or not -5<=time.time()-tp<=15 or abs(tp-te)>5:continue
+                                if est.get('linea')!=str(int(a.sync)-1000) or not -5<=time.time()-tp<=15 or not -5<=time.time()-te<=15 or abs(tp-te)>5:continue
                                 if not all(isinstance(pos.get(k),(float,int)) and not isinstance(pos.get(k),bool) and math.isfinite(pos[k]) for k in ['lat','lon']):continue
                                 fresh[rid]={**pos,'dir_observada':str(est.get('dir',''))}
                             except (KeyError,ValueError,TypeError):continue

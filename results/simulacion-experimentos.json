@@ -1,0 +1,217 @@
+{
+  "semilla": 20260930,
+  "paso_s": 1,
+  "tipo": "experimentos reproducibles, no episodios operativos observados",
+  "pasajeros_y_nieve": [
+    {
+      "beta": 0,
+      "escenario": "normal",
+      "duracion_sim_s": 2400,
+      "irregularidad_final": 0.11318460540599214,
+      "primer_cv_06_s": null,
+      "retraso_final_s": 134.92927224401944
+    },
+    {
+      "beta": 0,
+      "escenario": "nieve",
+      "duracion_sim_s": 2400,
+      "irregularidad_final": 0.1023895332205202,
+      "primer_cv_06_s": null,
+      "retraso_final_s": -506.41861676492516
+    },
+    {
+      "beta": 0.12,
+      "escenario": "normal",
+      "duracion_sim_s": 2400,
+      "irregularidad_final": 1.1934046470109376,
+      "primer_cv_06_s": 1435,
+      "retraso_final_s": -734.0391145705289
+    },
+    {
+      "beta": 0.12,
+      "escenario": "nieve",
+      "duracion_sim_s": 2400,
+      "irregularidad_final": 0.7542848748404642,
+      "primer_cv_06_s": 2143,
+      "retraso_final_s": -1057.553100653528
+    }
+  ],
+  "histograma_simulado": {
+    "limites_m_s": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21
+    ],
+    "frecuencias": [
+      6244,
+      266,
+      266,
+      520,
+      275,
+      263,
+      528,
+      11286,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "n": 19648,
+    "parado_fraccion": 0.3177931596091205,
+    "crucero_p85_m_s": 7.866500000000001
+  },
+  "ganancia": {
+    "seleccionada": 1.0,
+    "referencia": 0.3,
+    "filas": [
+      {
+        "ganancia": 0.1,
+        "seleccion_15min": {
+          "n": 15,
+          "mae_m": 1151.9939666666673,
+          "rmse_m": 1215.0872253208208,
+          "media_m": -1151.9939666666673
+        },
+        "evaluacion_15min": {
+          "n": 15,
+          "mae_m": 961.0118666666676,
+          "rmse_m": 992.5521580073098,
+          "media_m": -961.0118666666676
+        }
+      },
+      {
+        "ganancia": 0.3,
+        "seleccion_15min": {
+          "n": 15,
+          "mae_m": 492.0822,
+          "rmse_m": 519.3538752257782,
+          "media_m": -492.0822
+        },
+        "evaluacion_15min": {
+          "n": 15,
+          "mae_m": 151.27936666666696,
+          "rmse_m": 201.20515930433683,
+          "media_m": -115.01210000000053
+        }
+      },
+      {
+        "ganancia": 0.5,
+        "seleccion_15min": {
+          "n": 15,
+          "mae_m": 365.39433333333346,
+          "rmse_m": 394.7439012755823,
+          "media_m": -365.39433333333346
+        },
+        "evaluacion_15min": {
+          "n": 15,
+          "mae_m": 128.06193333333346,
+          "rmse_m": 167.98086400510056,
+          "media_m": -85.59033333333367
+        }
+      },
+      {
+        "ganancia": 0.7,
+        "seleccion_15min": {
+          "n": 15,
+          "mae_m": 220.39779999999985,
+          "rmse_m": 244.72928035668286,
+          "media_m": -220.39779999999985
+        },
+        "evaluacion_15min": {
+          "n": 15,
+          "mae_m": 98.19886666666723,
+          "rmse_m": 123.63853441639266,
+          "media_m": -55.860600000000765
+        }
+      },
+      {
+        "ganancia": 1.0,
+        "seleccion_15min": {
+          "n": 15,
+          "mae_m": 164.3189000000001,
+          "rmse_m": 187.47591663619986,
+          "media_m": -164.3189000000001
+        },
+        "evaluacion_15min": {
+          "n": 15,
+          "mae_m": 85.14150000000033,
+          "rmse_m": 106.02451837625456,
+          "media_m": -41.54090000000057
+        }
+      }
+    ],
+    "desde": "2026-09-29T15:03:29+00:00",
+    "hasta": "2026-09-29T15:33:29+00:00",
+    "descripcion": "reproducción de posiciones reales archivadas; selección con la primera mitad, comparación con la segunda; residuos previos a corregir"
+  },
+  "retenciones": [
+    {
+      "retencion_s": 0,
+      "irregularidad_antes": 0.11073727072291029,
+      "irregularidad_maxima": 0.5988912757258696,
+      "aplicada_t_sim_s": null,
+      "fin_parada_t_sim_s": null,
+      "recuperacion_s": null,
+      "criterio_recuperacion": "CV ≤ 0,3 durante 300 s consecutivos, desde el fin de la parada retenida",
+      "horizonte_despues_orden_s": 5400
+    },
+    {
+      "retencion_s": 60,
+      "irregularidad_antes": 0.11073727072291029,
+      "irregularidad_maxima": 0.7128381726318083,
+      "aplicada_t_sim_s": 1835,
+      "fin_parada_t_sim_s": 1912.0037821363512,
+      "recuperacion_s": 0.9962178636487806,
+      "criterio_recuperacion": "CV ≤ 0,3 durante 300 s consecutivos, desde el fin de la parada retenida",
+      "horizonte_despues_orden_s": 5400
+    },
+    {
+      "retencion_s": 120,
+      "irregularidad_antes": 0.11073727072291029,
+      "irregularidad_maxima": 0.7819063282358415,
+      "aplicada_t_sim_s": 1835,
+      "fin_parada_t_sim_s": 1972.0037821363512,
+      "recuperacion_s": null,
+      "criterio_recuperacion": "CV ≤ 0,3 durante 300 s consecutivos, desde el fin de la parada retenida",
+      "horizonte_despues_orden_s": 5400
+    },
+    {
+      "retencion_s": 240,
+      "irregularidad_antes": 0.11073727072291029,
+      "irregularidad_maxima": 0.930090965379536,
+      "aplicada_t_sim_s": 1835,
+      "fin_parada_t_sim_s": 2092.003782136351,
+      "recuperacion_s": null,
+      "criterio_recuperacion": "CV ≤ 0,3 durante 300 s consecutivos, desde el fin de la parada retenida",
+      "horizonte_despues_orden_s": 5400
+    }
+  ]
+}

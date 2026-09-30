@@ -43,3 +43,22 @@ python scripts/verificar_publicacion.py
 ```
 
 Las pruebas son locales y no conectan a brokers ni bases de datos. Para cerrar la adquisición, desactivar las entradas HSL en Node-RED y desconectar HSL en MQTTX. Detener el servicio Python por separado. Si se van a limpiar retenidos, guardar primero los que hagan falta y publicar mensajes vacíos retenidos en los topics concretos. Finalmente, `docker compose stop` conserva los volúmenes.
+
+## Ejecutar la simulación
+
+Instalar las dependencias Python del proyecto y arrancar los cuatro servicios antes de ejecutar el simulador. Importar `flows/hsl.json` y configurar las credenciales InfluxDB localmente. El dashboard `flota-simulacion.json` conserva la ventana del ensayo registrado; para una sesión nueva hay que cambiar `run_id` y el intervalo de consulta.
+
+```sh
+python3 src/sim_flota.py --ruta data/ruta-linea-4.json \
+  --velocidad 7.8665 --dwell 22.3 --paradas-cada 370.535 \
+  --vehiculos 4 --run-id mi-ensayo
+```
+
+Añadir `--sync 1004 --ganancia 1` para asimilar posiciones reales, o `--factor-tiempo 10` para acelerar un ensayo sin sincronización. No combinar aceleración y observaciones en vivo para valorar residuos predictivos. Los comandos deben incluir el identificador de ensayo.
+
+```sh
+docker compose exec mosquitto mosquitto_pub -t sim/cmd \
+  -m '{"run_id":"mi-ensayo","escenario":"nieve"}'
+```
+
+`--registro` guarda un JSONL local para resumir resultados. Esos registros no se publican en Git. Los scripts de integración preservan el flujo existente y requieren servicios locales y credenciales por variables de entorno; no sustituyen la configuración privada del laboratorio.

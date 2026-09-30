@@ -1,0 +1,928 @@
+[
+  {
+    "id": "tab_paso5",
+    "type": "tab",
+    "label": "Pasos 5-11 · HSL",
+    "disabled": false,
+    "info": "Alarma de puertas en marcha: QoS 1, sin retain, topic flota/hsl/alarma/puertas."
+  },
+  {
+    "id": "cfg_hsl",
+    "type": "mqtt-broker",
+    "name": "HSL",
+    "broker": "mqtt.hsl.fi",
+    "port": "1883",
+    "clientid": "",
+    "autoConnect": true,
+    "usetls": false,
+    "protocolVersion": "4",
+    "keepalive": "60",
+    "cleansession": true,
+    "autoUnsubscribe": true,
+    "birthTopic": "",
+    "birthQos": "0",
+    "birthPayload": "",
+    "closeTopic": "",
+    "closeQos": "0",
+    "closePayload": "",
+    "willTopic": "",
+    "willQos": "0",
+    "willPayload": "",
+    "sessionExpiry": ""
+  },
+  {
+    "id": "cfg_local",
+    "type": "mqtt-broker",
+    "name": "Local",
+    "broker": "mosquitto",
+    "port": "1883",
+    "clientid": "",
+    "autoConnect": true,
+    "usetls": false,
+    "protocolVersion": "4",
+    "keepalive": "60",
+    "cleansession": true,
+    "autoUnsubscribe": true,
+    "birthTopic": "",
+    "birthQos": "0",
+    "birthPayload": "",
+    "closeTopic": "",
+    "closeQos": "0",
+    "closePayload": "",
+    "willTopic": "",
+    "willQos": "0",
+    "willPayload": "",
+    "sessionExpiry": ""
+  },
+  {
+    "id": "in_hsl",
+    "type": "mqtt in",
+    "z": "tab_paso5",
+    "name": "HSL: línea 1004",
+    "topic": "/hfp/v2/journey/ongoing/vp/+/+/+/1004/#",
+    "qos": "0",
+    "datatype": "utf8",
+    "broker": "cfg_hsl",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 150,
+    "y": 180,
+    "wires": [
+      [
+        "f_validar"
+      ]
+    ]
+  },
+  {
+    "id": "f_validar",
+    "type": "function",
+    "z": "tab_paso5",
+    "name": "Validar HSL",
+    "func": "function rechazar(motivo) {\n    msg.motivo = motivo;\n    return [null, msg];\n}\nif (msg.payload === null || msg.payload === undefined || msg.payload === \"\") {\n    return rechazar(\"payload nulo\");\n}\nlet d;\ntry {\n    d = (typeof msg.payload === \"string\") ? JSON.parse(msg.payload) : msg.payload;\n} catch (e) {\n    return rechazar(\"no JSON\");\n}\nif (d === null || typeof d !== \"object\" || Array.isArray(d)) {\n    return rechazar(\"payload no es objeto\");\n}\nconst vp = d.VP;\nif (!vp || typeof vp !== \"object\" || Array.isArray(vp)) return rechazar(\"sin VP\");\nif (vp.loc !== \"GPS\") return rechazar(\"posición estimada: \" + vp.loc);\n\nfunction num(v) {\n    if (typeof v === \"number\") return v;\n    if (typeof v === \"string\" && v.trim() !== \"\") return Number(v);\n    return NaN;\n}\nconst lat = num(vp.lat);\nconst lon = num(vp.long);\nconst spd = num(vp.spd);\nif (!Number.isFinite(lat) || !Number.isFinite(lon)) {\n    return rechazar(\"sin GPS (loc=\" + vp.loc + \")\");\n}\nif (lat < 59.9 || lat > 60.5 || lon < 24.4 || lon > 25.5) {\n    return rechazar(\"coordenadas fuera de rango \" + lat + \",\" + lon);\n}\nif (!Number.isFinite(spd) || spd < 0 || spd > 45) {\n    return rechazar(\"velocidad imposible \" + vp.spd);\n}\nif (typeof vp.tst !== \"string\" || vp.tst.length < 10) {\n    return rechazar(\"tst no interpretable\");\n}\nconst tst = Date.parse(vp.tst);\nif (!Number.isFinite(tst)) return rechazar(\"tst no interpretable\");\nconst edad_s = (Date.now() - tst) / 1000;\nif (!Number.isFinite(edad_s) || Math.abs(edad_s) > 30) {\n    return rechazar(\"antigüedad \" + (Number.isFinite(edad_s) ? edad_s.toFixed(0) : \"NaN\") + \" s\");\n}\nreturn [msg, null];\n",
+    "outputs": 2,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 360,
+    "y": 180,
+    "wires": [
+      [
+        "f_contar_ok"
+      ],
+      [
+        "dbg_cuar",
+        "f_contar_cuar"
+      ]
+    ]
+  },
+  {
+    "id": "f_contar_ok",
+    "type": "function",
+    "z": "tab_paso5",
+    "name": "Contar válidos",
+    "func": "let n = (flow.get(\"validos\") || 0) + 1;\nflow.set(\"validos\", n);\nnode.status({ fill: \"green\", shape: \"dot\", text: n + \" válidos\" });\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "flow.set(\"validos\", 0);\nflow.set(\"cuarentena\", 0);\nflow.set(\"motivos\", {});\nflow.set(\"t0\", Date.now());",
+    "finalize": "",
+    "libs": [],
+    "x": 560,
+    "y": 120,
+    "wires": [
+      [
+        "f_normalizar"
+      ]
+    ]
+  },
+  {
+    "id": "f_contar_cuar",
+    "type": "function",
+    "z": "tab_paso5",
+    "name": "Contar cuarentena",
+    "func": "let n = (flow.get(\"cuarentena\") || 0) + 1;\nflow.set(\"cuarentena\", n);\nconst m = msg.motivo || \"?\";\nconst bucket = m.startsWith(\"posición estimada\") ? \"posición estimada\"\n  : m.startsWith(\"antigüedad\") ? \"antigüedad\"\n  : m.startsWith(\"velocidad\") ? \"velocidad imposible\"\n  : m.startsWith(\"sin GPS\") ? \"sin GPS\"\n  : m;\nconst hist = flow.get(\"motivos\") || {};\nhist[bucket] = (hist[bucket] || 0) + 1;\nflow.set(\"motivos\", hist);\nnode.status({ fill: \"yellow\", shape: \"dot\", text: n + \" · \" + msg.motivo });\nreturn null;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 590,
+    "y": 260,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "dbg_cuar",
+    "type": "debug",
+    "z": "tab_paso5",
+    "name": "cuarentena",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "motivo",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 580,
+    "y": 320,
+    "wires": []
+  },
+  {
+    "id": "f_normalizar",
+    "type": "function",
+    "z": "tab_paso5",
+    "name": "Normalizar HSL",
+    "func": "let d;\ntry { d = JSON.parse(msg.payload); }\ncatch (e) { node.warn(\"payload no JSON: \" + String(msg.payload).slice(0, 60)); return null; }\nconst vp = d.VP;\nif (!vp) return null;\n\nconst t = msg.topic.split(\"/\");\nconst modo = t[6], oper = t[7], veh = t[8];\nconst base = `flota/hsl/${modo}/${oper}/${veh}`;\nconst stopId = String(vp.stop != null ? vp.stop : (t[13] || \"\"));\nconst paradas = flow.get(\"paradas\") || {};\nconst coord = paradas[stopId];\nlet dist = null;\nif (stopId && coord && Number.isFinite(vp.lat) && Number.isFinite(vp.long)) {\n    const R = 6371000;\n    const rad = Math.PI / 180;\n    const dLat = (coord[0] - vp.lat) * rad;\n    const dLon = (coord[1] - vp.long) * rad;\n    const a = Math.sin(dLat / 2) ** 2 + Math.cos(vp.lat * rad) * Math.cos(coord[0] * rad) * Math.sin(dLon / 2) ** 2;\n    dist = 2 * R * Math.asin(Math.min(1, Math.sqrt(a)));\n}\nconst oday = String(vp.oday || \"\");\nconst startRaw = String(vp.start || t[12] || \"\");\nconst startHHMM = Number(startRaw.replace(\":\", \"\"));\nconst odayN = Number(oday.replace(/-/g, \"\"));\nconst jrn = Number(vp.jrn);\nconst viaje = (oday && Number.isFinite(startHHMM) && Number.isFinite(jrn))\n    ? `${oday}_${String(startHHMM).padStart(4, \"0\")}_${jrn}` : null;\nconst parada = /^\\d+$/.test(stopId) ? stopId : null;\nconst retraso = (vp.dl == null || !Number.isFinite(Number(vp.dl))) ? null : Number(vp.dl);\n\nconst posicion = {\n    topic: `${base}/posicion`, retain: true, qos: 0,\n    payload: {\n        lat: vp.lat, lon: vp.long, spd: vp.spd, hdg: vp.hdg, ts: vp.tst, src: \"hsl\",\n        dist_parada_m: Number.isFinite(dist) ? Math.round(dist) : null,\n        parada, viaje\n    }\n};\nconst estado = {\n    topic: `${base}/estado`, retain: true, qos: 0,\n    payload: {\n        linea: vp.desi, dir: vp.dir, retraso_s: retraso,\n        puertas: vp.drst === 1 ? \"ABIERTAS\" : \"CERRADAS\",\n        parada, viaje, ts: vp.tst, src: \"hsl\"\n    }\n};\nconst fields = { puertas_abiertas: vp.drst === 1 ? 1 : 0, lat: vp.lat, lon: vp.long };\nif (Number.isFinite(Number(vp.spd))) fields.spd = Number(vp.spd);\nif (retraso != null) fields.retraso_s = retraso;\nif (Number.isFinite(dist)) fields.dist_parada_m = Math.round(dist);\nif (parada) fields.parada_id = Number(parada);\nif (Number.isFinite(jrn)) fields.jrn = jrn;\nif (Number.isFinite(startHHMM)) fields.start_hhmm = startHHMM;\nif (Number.isFinite(odayN)) fields.oday_n = odayN;\nconst tags = { modo, oper, veh, linea: String(vp.desi), dir: String(vp.dir) };\nreturn [[posicion, estado], { payload: [fields, tags] }];\n",
+    "outputs": 2,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 760,
+    "y": 120,
+    "wires": [
+      [
+        "out_local",
+        "f_mapa",
+        "f_guardar",
+        "f_detectar"
+      ],
+      [
+        "influx_out"
+      ]
+    ]
+  },
+  {
+    "id": "out_local",
+    "type": "mqtt out",
+    "z": "tab_paso5",
+    "name": "publicar en mi broker",
+    "topic": "",
+    "qos": "",
+    "retain": "",
+    "respTopic": "",
+    "contentType": "",
+    "userProps": "",
+    "correl": "",
+    "expiry": "",
+    "broker": "cfg_local",
+    "x": 980,
+    "y": 80,
+    "wires": []
+  },
+  {
+    "id": "f_mapa",
+    "type": "function",
+    "z": "tab_paso5",
+    "name": "Punto del mapa",
+    "func": "const partes = String(msg.topic || \"\").split(\"/\");\nconst esPos = partes[0] === \"flota\" && partes[1] === \"hsl\" && partes[5] === \"posicion\";\nconst esEta = partes[0] === \"prediccion\" && partes[1] === \"eta\" && partes.length === 5;\nif (!esPos && !esEta) return null;\nconst clave = partes.slice(2, 5).join(\"/\");\nlet datos = msg.payload;\nif (typeof datos === \"string\") { try { datos = JSON.parse(datos); } catch (e) { return null; } }\nif (!datos || typeof datos !== \"object\" || Array.isArray(datos)) return null;\nif (esPos) flow.set(\"map_pos_\" + clave, datos);\nif (esEta) flow.set(\"map_eta_\" + clave, datos);\nconst pos = flow.get(\"map_pos_\" + clave);\nif (!pos || !Number.isFinite(pos.lat) || !Number.isFinite(pos.lon)) return null;\nconst posTs = Date.parse(pos.ts);\nif (!Number.isFinite(posTs) || Math.abs(Date.now() - posTs) > 30000) return null;\nconst eta = flow.get(\"map_eta_\" + clave);\nconst etaTs = eta && Date.parse(eta.ts);\nconst vigente = eta && Number.isFinite(etaTs) && Math.abs(Date.now() - etaTs) <= 15000\n    && Math.abs(etaTs - posTs) <= 5000\n    && eta.viaje && eta.parada && eta.viaje === pos.viaje && String(eta.parada) === String(pos.parada)\n    && Number.isFinite(eta.eta_s) && eta.eta_s >= 0 && Number.isFinite(eta.base_s) && eta.base_s >= 0;\nnode.status({fill: vigente ? \"green\" : \"blue\", shape: \"dot\", text: vigente ? \"ETA \" + eta.version : \"posición sin ETA vigente\"});\nreturn {payload: {\n    name: `${partes[3]}-${partes[4]}`, lat: pos.lat, lon: pos.lon,\n    icon: partes[2] === \"tram\" ? \"train\" : \"bus\", layer: partes[2],\n    speed: (pos.spd * 3.6).toFixed(0) + \" km/h\",\n    ETA_modelo: vigente ? Math.round(eta.eta_s) + \" s\" : \"sin predicción vigente\",\n    ETA_base: vigente ? Math.round(eta.base_s) + \" s\" : \"—\",\n    version_ETA: vigente ? String(eta.version) : \"—\",\n    parada: String(pos.parada || \"—\"),\n    ts_ETA_UTC: vigente ? eta.ts : \"—\"\n}};\n",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 980,
+    "y": 220,
+    "wires": [
+      [
+        "worldmap"
+      ]
+    ]
+  },
+  {
+    "id": "worldmap",
+    "type": "worldmap",
+    "z": "tab_paso5",
+    "name": "mapa",
+    "lat": "60.17",
+    "lon": "24.94",
+    "zoom": "12",
+    "layer": "OSMG",
+    "cluster": "",
+    "maxage": "120",
+    "usermenu": "show",
+    "layers": "show",
+    "panit": "false",
+    "panlock": "false",
+    "zoomlock": "false",
+    "hiderightclick": "false",
+    "coords": "none",
+    "showgrid": "false",
+    "showruler": "false",
+    "allowFileDrop": "false",
+    "path": "/worldmap",
+    "overlist": "DR,CO,RA,DN,HM",
+    "maplist": "OSMG,OSMC,EsriC,EsriS,EsriT,EsriDG,UKOS",
+    "mapname": "",
+    "mapurl": "",
+    "mapopt": "",
+    "mapwms": false,
+    "x": 1180,
+    "y": 220,
+    "wires": []
+  },
+  {
+    "id": "cfg_influx",
+    "type": "influxdb",
+    "hostname": "127.0.0.1",
+    "port": "8086",
+    "protocol": "http",
+    "database": "database",
+    "name": "InfluxDB flota",
+    "usetls": false,
+    "tls": "",
+    "influxdbVersion": "2.0",
+    "url": "http://influxdb:8086",
+    "timeout": "10",
+    "rejectUnauthorized": true
+  },
+  {
+    "id": "influx_out",
+    "type": "influxdb out",
+    "z": "tab_paso5",
+    "influxdb": "cfg_influx",
+    "name": "bucket flota",
+    "measurement": "vehiculo",
+    "precision": "",
+    "retentionPolicy": "",
+    "database": "database",
+    "precisionV18FluxV20": "ms",
+    "retentionPolicyV18Flux": "",
+    "org": "lab",
+    "bucket": "flota",
+    "x": 820,
+    "y": 300,
+    "wires": []
+  },
+  {
+    "id": "f_guardar",
+    "type": "function",
+    "z": "tab_paso5",
+    "name": "Guardar posición",
+    "func": "if (!msg.topic.endsWith(\"/posicion\")) return null;\nconst veh = msg.topic.split(\"/\").slice(2, 5).join(\"/\");\nflow.set(\"pos_\" + veh, msg.payload);\nreturn null;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 980,
+    "y": 20,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "f_detectar",
+    "type": "function",
+    "z": "tab_paso5",
+    "name": "Detectar puertas en marcha",
+    "func": "if (!msg.topic.endsWith(\"/estado\")) return null;\nconst veh = msg.topic.split(\"/\").slice(2, 5).join(\"/\");\nconst pos = flow.get(\"pos_\" + veh) || {};\nif (msg.payload.puertas === \"ABIERTAS\" && pos.spd > 3) {\n    node.status({ fill: \"red\", shape: \"dot\", text: \"alarma \" + veh });\n    return { topic: \"flota/hsl/alarma/puertas\", qos: 1, retain: false,\n             payload: { veh, spd: pos.spd, ts: msg.payload.ts } };\n}\nreturn null;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 980,
+    "y": 140,
+    "wires": [
+      [
+        "out_local"
+      ]
+    ]
+  },
+  {
+    "id": "tab_reto",
+    "type": "tab",
+    "label": "Reto 13.1 · invierno",
+    "disabled": false,
+    "info": "Open-Meteo cada 10 min, retenido en contexto/meteo. La decisión cruza nieve y el empeoramiento del retraso."
+  },
+  {
+    "id": "inj_meteo",
+    "type": "inject",
+    "z": "tab_reto",
+    "name": "cada 10 min",
+    "props": [],
+    "repeat": "600",
+    "crontab": "",
+    "once": true,
+    "onceDelay": "2",
+    "topic": "",
+    "x": 120,
+    "y": 80,
+    "wires": [
+      [
+        "http_meteo"
+      ]
+    ]
+  },
+  {
+    "id": "http_meteo",
+    "type": "http request",
+    "z": "tab_reto",
+    "name": "Open-Meteo",
+    "method": "GET",
+    "ret": "obj",
+    "paytoqs": "ignore",
+    "url": "https://api.open-meteo.com/v1/forecast?latitude=60.17&longitude=24.94&current=temperature_2m,precipitation,snowfall,wind_speed_10m&hourly=snowfall,precipitation_probability&forecast_hours=6&timezone=UTC",
+    "tls": "",
+    "persist": false,
+    "proxy": "",
+    "insecureHTTPParser": false,
+    "authType": "",
+    "senderr": false,
+    "headers": [],
+    "x": 350,
+    "y": 80,
+    "wires": [
+      [
+        "f_meteo"
+      ]
+    ]
+  },
+  {
+    "id": "f_meteo",
+    "type": "function",
+    "z": "tab_reto",
+    "name": "Normalizar meteo",
+    "func": "function cuarentena(motivo) {\n    msg.motivo = motivo;\n    node.status({ fill: \"yellow\", shape: \"ring\", text: motivo });\n    return [null, null, msg];\n}\nconst d = msg.payload;\nif (!d || typeof d !== \"object\" || !d.current) return cuarentena(\"meteo sin current\");\nconst c = d.current;\nconst snow = d.hourly && Array.isArray(d.hourly.snowfall) ? d.hourly.snowfall : null;\nif (!snow || snow.length < 2) return cuarentena(\"meteo sin prevision horaria\");\nfunction numCampo(v) {\n    if (v === null || v === undefined || v === \"\") return NaN;\n    if (typeof v === \"boolean\") return NaN;\n    return typeof v === \"number\" ? v : Number(v);\n}\nconst crudos = [c.temperature_2m, c.snowfall, c.precipitation, c.wind_speed_10m, snow[0], snow[1]];\nif (crudos.some(v => v === null || v === undefined || v === \"\")) return cuarentena(\"meteo con campo nulo\");\nconst temp = numCampo(c.temperature_2m);\nconst nieve = numCampo(c.snowfall);\nconst lluvia = numCampo(c.precipitation);\nconst viento = numCampo(c.wind_speed_10m);\nconst nieve2h = numCampo(snow[0]) + numCampo(snow[1]);\nif (![temp, nieve, lluvia, viento, nieve2h].every(Number.isFinite)) return cuarentena(\"meteo sin numeros\");\nlet ts = String(c.time || \"\");\nif (!ts) return cuarentena(\"meteo sin ts\");\nif (!ts.endsWith(\"Z\")) ts = ts + \"Z\";\nconst fuente = Date.parse(ts);\nconst edad_s = (Date.now() - fuente) / 1000;\nif (!Number.isFinite(fuente) || edad_s > 2 * 3600 || edad_s < -300) {\n    return cuarentena(\"ts de la fuente caducado o ilegible\");\n}\nconst meteo = { temp, nieve_cm_h: nieve, nieve_2h_cm: nieve2h, lluvia_mm: lluvia, viento_kmh: viento, ts, recibido: Date.now(), forzado: false };\nflow.set(\"meteo\", meteo);\nnode.status({ fill: \"blue\", shape: \"dot\", text: \"nieve \" + nieve2h + \" cm/2h\" });\nconst actual = { topic: \"contexto/meteo/actual\", retain: true, qos: 0, payload: { temp, nieve_cm_h: nieve, lluvia_mm: lluvia, viento_kmh: viento, ts } };\nconst prevision = { topic: \"contexto/meteo/prevision\", retain: true, qos: 0, payload: { nieve_2h_cm: nieve2h, ts } };\nconst punto = { payload: [ { nieve_cm_h: nieve, nieve_2h_cm: nieve2h, temp }, { fuente: \"open-meteo\" } ] };\nreturn [[actual, prevision], punto, null];\n",
+    "outputs": 3,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 600,
+    "y": 80,
+    "wires": [
+      [
+        "out_meteo"
+      ],
+      [
+        "influx_clima"
+      ],
+      [
+        "dbg_meteo_cuar"
+      ]
+    ]
+  },
+  {
+    "id": "out_meteo",
+    "type": "mqtt out",
+    "z": "tab_reto",
+    "name": "contexto y decisión MQTT",
+    "topic": "",
+    "qos": "",
+    "retain": "",
+    "respTopic": "",
+    "contentType": "",
+    "userProps": "",
+    "correl": "",
+    "expiry": "",
+    "broker": "cfg_local",
+    "x": 920,
+    "y": 80,
+    "wires": []
+  },
+  {
+    "id": "influx_clima",
+    "type": "influxdb out",
+    "z": "tab_reto",
+    "influxdb": "cfg_influx",
+    "name": "clima",
+    "measurement": "clima",
+    "precision": "",
+    "retentionPolicy": "",
+    "database": "database",
+    "precisionV18FluxV20": "ms",
+    "retentionPolicyV18Flux": "",
+    "org": "lab",
+    "bucket": "flota",
+    "x": 920,
+    "y": 150,
+    "wires": []
+  },
+  {
+    "id": "inj_decidir",
+    "type": "inject",
+    "z": "tab_reto",
+    "name": "cada 5 min",
+    "props": [
+      {
+        "p": "payload"
+      }
+    ],
+    "repeat": "300",
+    "crontab": "",
+    "once": false,
+    "onceDelay": "20",
+    "topic": "",
+    "payload": "ahora = from(bucket: \"flota\")\n  |> range(start: -10m)\n  |> filter(fn: (r) => r._measurement == \"vehiculo\" and r._field == \"retraso_s\" and not exists r.evento)\n  |> group()\n  |> mean()\n  |> map(fn: (r) => ({_value: r._value, ventana: \"ahora\"}))\nantes = from(bucket: \"flota\")\n  |> range(start: -70m, stop: -60m)\n  |> filter(fn: (r) => r._measurement == \"vehiculo\" and r._field == \"retraso_s\" and not exists r.evento)\n  |> group()\n  |> mean()\n  |> map(fn: (r) => ({_value: r._value, ventana: \"antes\"}))\nunion(tables: [ahora, antes])\n",
+    "payloadType": "str",
+    "x": 120,
+    "y": 300,
+    "wires": [
+      [
+        "f_flux_hdr"
+      ]
+    ]
+  },
+  {
+    "id": "http_flux",
+    "type": "http request",
+    "z": "tab_reto",
+    "name": "retraso dos ventanas",
+    "method": "POST",
+    "ret": "txt",
+    "paytoqs": "ignore",
+    "url": "http://influxdb:8086/api/v2/query?org=lab",
+    "tls": "",
+    "persist": false,
+    "proxy": "",
+    "insecureHTTPParser": false,
+    "authType": "",
+    "senderr": false,
+    "headers": [],
+    "x": 580,
+    "y": 300,
+    "wires": [
+      [
+        "f_decidir"
+      ]
+    ]
+  },
+  {
+    "id": "f_decidir",
+    "type": "function",
+    "z": "tab_reto",
+    "name": "Decidir invierno",
+    "func": "function publicar(payload, topic) {\n    const mqtt = { topic: topic || \"decision/plan_invierno\", qos: 2, retain: topic ? false : true, payload };\n    if (topic) return [mqtt, null];\n    const fields = {\n        activar: payload.activar ? 1 : 0,\n        valida: payload.valida ? 1 : 0,\n        nieve: payload.nieve ? 1 : 0,\n        empeora: payload.empeora ? 1 : 0,\n        sintetico: payload.sintetico ? 1 : 0\n    };\n    if (Number.isFinite(payload.retraso_ahora_s)) fields.retraso_ahora_s = payload.retraso_ahora_s;\n    if (Number.isFinite(payload.retraso_antes_s)) fields.retraso_antes_s = payload.retraso_antes_s;\n    if (Number.isFinite(payload.nieve_2h_cm)) fields.nieve_2h_cm = payload.nieve_2h_cm;\n    return [mqtt, { payload: [fields, { regla: \"plan_invierno\", motivo: String(payload.motivo || \"\") }] }];\n}\nfunction invalidar(motivo, meteo) {\n    node.status({ fill: \"yellow\", shape: \"ring\", text: motivo });\n    return publicar({\n        activar: false,\n        valida: false,\n        motivo,\n        sintetico: Boolean(msg.sintetico),\n        ts_fuente: meteo && meteo.ts || null,\n        ts: new Date().toISOString()\n    });\n}\nif (msg.prueba) {\n    const ahora = Number(msg.ahora);\n    const antes = Number(msg.antes);\n    const nieve = (Number(msg.nieve_cm_h) > 0) || (Number(msg.nieve_2h_cm) > 0);\n    const empeora = Number.isFinite(ahora) && Number.isFinite(antes) && (antes - ahora) > 90;\n    const activar = Boolean(nieve && empeora);\n    node.status({ fill: activar ? \"red\" : \"blue\", shape: \"ring\", text: \"prueba \" + (activar ? \"ACTIVAR\" : \"no\") });\n    const motivoPrueba = activar ? \"nieve y empeora\" : (nieve ? \"nieve sin empeorar\" : \"sin nieve\");\n    return publicar({\n        activar, valida: true, nieve, empeora, hayVentanas: true,\n        retraso_ahora_s: ahora, retraso_antes_s: antes,\n        nieve_2h_cm: Number(msg.nieve_2h_cm),\n        motivo: motivoPrueba,\n        sintetico: true,\n        ts: new Date().toISOString()\n    }, \"decision/plan_invierno/prueba\");\n}\nconst meteo = flow.get(\"meteo\");\nif (!meteo) return invalidar(\"sin contexto meteorológico\", null);\nconst fuente = Date.parse(meteo.ts);\nconst edadFuente_s = (Date.now() - fuente) / 1000;\nif (!Number.isFinite(fuente) || edadFuente_s > 2 * 3600 || edadFuente_s < -300) {\n    return invalidar(\"contexto caducado\", meteo);\n}\nconst lines = String(msg.payload || \"\").split(\"\\n\").map(s => s.trim()).filter(s => s && !s.startsWith(\"#\"));\nconst header = (lines.shift() || \"\").split(\",\");\nconst iV = header.indexOf(\"ventana\");\nconst iN = header.indexOf(\"_value\");\nconst buckets = { ahora: [], antes: [] };\nfor (const line of lines) {\n    const c = line.split(\",\");\n    const v = c[iV];\n    const raw = c[iN];\n    // Una celda vacía no es una media cero ni una ventana observada.\n    if (raw === undefined || raw.trim() === \"\") continue;\n    const num = Number(raw);\n    if (buckets[v] && Number.isFinite(num)) buckets[v].push(num);\n}\nconst media = (a) => a.length ? a.reduce((x, y) => x + y, 0) / a.length : null;\nconst ahora = media(buckets.ahora);\nconst antes = media(buckets.antes);\nconst hayVentanas = Number.isFinite(ahora) && Number.isFinite(antes);\nif (!hayVentanas) return invalidar(\"histórico insuficiente\", meteo);\nconst nieve = (meteo.nieve_cm_h > 0) || (meteo.nieve_2h_cm > 0);\nconst empeora = (antes - ahora) > 90;\nconst activar = Boolean(nieve && empeora);\nnode.status({ fill: activar ? \"red\" : \"green\", shape: \"dot\", text: (activar ? \"ACTIVAR\" : \"no\") + \" ahora=\" + (ahora === null ? \"-\" : ahora.toFixed(0)) });\nconst motivo = activar ? \"nieve y empeora\"\n    : (nieve && !empeora) ? \"nieve sin empeorar\"\n    : (!nieve && empeora) ? \"empeora sin nieve\"\n    : \"sin nieve ni empeora\";\nreturn publicar({\n    activar, valida: true, nieve, empeora, hayVentanas,\n    retraso_ahora_s: ahora, retraso_antes_s: antes,\n    nieve_2h_cm: meteo.nieve_2h_cm,\n    forzado: Boolean(meteo.forzado),\n    sintetico: false,\n    motivo,\n    ts_fuente: meteo.ts,\n    ts: new Date().toISOString()\n});\n",
+    "outputs": 2,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 820,
+    "y": 300,
+    "wires": [
+      [
+        "out_meteo"
+      ],
+      [
+        "influx_decision"
+      ]
+    ]
+  },
+  {
+    "id": "inj_forzar",
+    "type": "inject",
+    "z": "tab_reto",
+    "name": "forzar nieve 2 h",
+    "props": [],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "x": 120,
+    "y": 400,
+    "wires": [
+      [
+        "f_forzar"
+      ]
+    ]
+  },
+  {
+    "id": "f_forzar",
+    "type": "function",
+    "z": "tab_reto",
+    "name": "Forzar previsión",
+    "func": "const prev = flow.get(\"meteo\") || {};\nconst ts = new Date().toISOString();\nconst meteo = Object.assign({}, prev, { nieve_2h_cm: 1.2, ts, recibido: Date.now(), forzado: true });\nflow.set(\"meteo\", meteo);\nnode.status({ fill: \"blue\", shape: \"ring\", text: \"forzado 1.2 cm\" });\nreturn { topic: \"contexto/meteo/prevision\", retain: true, qos: 0, payload: { nieve_2h_cm: 1.2, ts, forzado: true } };",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 400,
+    "y": 400,
+    "wires": [
+      [
+        "out_meteo"
+      ]
+    ]
+  },
+  {
+    "id": "inj_prueba_alarma",
+    "type": "inject",
+    "z": "tab_paso5",
+    "name": "prueba QoS puertas",
+    "props": [],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "x": 180,
+    "y": 460,
+    "wires": [
+      [
+        "f_prueba_alarma"
+      ]
+    ]
+  },
+  {
+    "id": "f_prueba_alarma",
+    "type": "function",
+    "z": "tab_paso5",
+    "name": "Simular puertas en marcha",
+    "func": "const ts = new Date().toISOString();\nflow.set(\"pos_tram/0040/00999\", { spd: 8, ts });\nnode.status({ fill: \"yellow\", shape: \"dot\", text: \"prueba\" });\nreturn { topic: \"flota/hsl/tram/0040/00999/estado\", payload: { puertas: \"ABIERTAS\", ts } };",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 430,
+    "y": 460,
+    "wires": [
+      [
+        "f_detectar"
+      ]
+    ]
+  },
+  {
+    "id": "f_flux_hdr",
+    "type": "function",
+    "z": "tab_reto",
+    "name": "Cabecera Influx",
+    "func": "msg.headers = {\n  \"Authorization\": \"Token \" + env.get(\"INFLUX_TOKEN\"),\n  \"Content-Type\": \"application/vnd.flux\",\n  \"Accept\": \"application/csv\"\n};\nreturn msg;\n",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 340,
+    "y": 300,
+    "wires": [
+      [
+        "http_flux"
+      ]
+    ]
+  },
+  {
+    "id": "inj_paradas",
+    "type": "inject",
+    "z": "tab_paso5",
+    "name": "cargar paradas",
+    "props": [
+      {
+        "p": "payload"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": true,
+    "onceDelay": "1",
+    "topic": "",
+    "payload": "",
+    "payloadType": "date",
+    "x": 160,
+    "y": 40,
+    "wires": [
+      [
+        "file_stops"
+      ]
+    ]
+  },
+  {
+    "id": "file_stops",
+    "type": "file in",
+    "z": "tab_paso5",
+    "name": "stops-hsl.json",
+    "filename": "/data/stops-hsl.json",
+    "filenameType": "str",
+    "format": "utf8",
+    "chunk": false,
+    "sendError": true,
+    "encoding": "none",
+    "allProps": false,
+    "x": 380,
+    "y": 40,
+    "wires": [
+      [
+        "f_paradas"
+      ]
+    ]
+  },
+  {
+    "id": "f_paradas",
+    "type": "function",
+    "z": "tab_paso5",
+    "name": "Guardar paradas",
+    "func": "let map;\ntry { map = JSON.parse(msg.payload); }\ncatch (e) { node.status({ fill: \"red\", shape: \"ring\", text: \"stops no JSON\" }); return null; }\nif (!map || typeof map !== \"object\") return null;\nflow.set(\"paradas\", map);\nnode.status({ fill: \"green\", shape: \"dot\", text: Object.keys(map).length + \" paradas\" });\nreturn null;\n",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 600,
+    "y": 40,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "in_ars",
+    "type": "mqtt in",
+    "z": "tab_paso5",
+    "name": "HSL ars 1004",
+    "topic": "/hfp/v2/journey/ongoing/ars/+/+/+/1004/#",
+    "qos": "0",
+    "datatype": "utf8",
+    "broker": "cfg_hsl",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 150,
+    "y": 560,
+    "wires": [
+      [
+        "f_evento"
+      ]
+    ]
+  },
+  {
+    "id": "in_dep",
+    "type": "mqtt in",
+    "z": "tab_paso5",
+    "name": "HSL dep 1004",
+    "topic": "/hfp/v2/journey/ongoing/dep/+/+/+/1004/#",
+    "qos": "0",
+    "datatype": "utf8",
+    "broker": "cfg_hsl",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 150,
+    "y": 620,
+    "wires": [
+      [
+        "f_evento"
+      ]
+    ]
+  },
+  {
+    "id": "f_evento",
+    "type": "function",
+    "z": "tab_paso5",
+    "name": "Guardar ars/dep",
+    "func": "let d;\ntry { d = JSON.parse(msg.payload); }\ncatch (e) { return null; }\nif (!d || typeof d !== \"object\") return null;\nconst t = msg.topic.split(\"/\");\nconst tipo = t[5];\nconst body = tipo === \"ars\" ? d.ARS : tipo === \"dep\" ? d.DEP : null;\nif (!body) return null;\nconst tst = Date.parse(body.tst);\nif (!Number.isFinite(tst)) return null;\nconst modo = t[6], oper = t[7], veh = t[8];\nconst parada = String(body.stop != null ? body.stop : (t[13] || \"\"));\nconst oday = String(body.oday || \"\");\nconst startRaw = String(body.start || t[12] || \"\");\nconst startHHMM = Number(startRaw.replace(\":\", \"\"));\nconst jrn = Number(body.jrn);\nconst viaje = (oday && Number.isFinite(startHHMM) && Number.isFinite(jrn))\n    ? `${oday}_${String(startHHMM).padStart(4, \"0\")}_${jrn}` : \"\";\nconst fields = {};\nif (Number.isFinite(Number(body.spd))) fields.spd = Number(body.spd);\nif (body.dl != null && Number.isFinite(Number(body.dl))) fields.retraso_s = Number(body.dl);\nif (Number.isFinite(Number(body.lat))) fields.lat = Number(body.lat);\nif (Number.isFinite(Number(body.long))) fields.lon = Number(body.long);\nif (!Object.keys(fields).length) fields.spd = 0;\nconst tags = { modo, oper, veh, linea: String(body.desi || \"\"), evento: tipo, parada };\nif (viaje) tags.viaje = viaje;\nreturn { payload: [fields, tags] };\n",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 400,
+    "y": 590,
+    "wires": [
+      [
+        "influx_evento"
+      ]
+    ]
+  },
+  {
+    "id": "influx_evento",
+    "type": "influxdb out",
+    "z": "tab_paso5",
+    "influxdb": "cfg_influx",
+    "name": "evento",
+    "measurement": "vehiculo",
+    "precision": "",
+    "retentionPolicy": "",
+    "database": "database",
+    "precisionV18FluxV20": "ms",
+    "retentionPolicyV18Flux": "",
+    "org": "lab",
+    "bucket": "flota",
+    "x": 620,
+    "y": 590,
+    "wires": []
+  },
+  {
+    "id": "influx_decision",
+    "type": "influxdb out",
+    "z": "tab_reto",
+    "influxdb": "cfg_influx",
+    "name": "decision",
+    "measurement": "decision",
+    "precision": "",
+    "retentionPolicy": "",
+    "database": "database",
+    "precisionV18FluxV20": "ms",
+    "retentionPolicyV18Flux": "",
+    "org": "lab",
+    "bucket": "flota",
+    "x": 1080,
+    "y": 300,
+    "wires": []
+  },
+  {
+    "id": "dbg_meteo_cuar",
+    "type": "debug",
+    "z": "tab_reto",
+    "name": "cuarentena meteo",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": true,
+    "complete": "motivo",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 920,
+    "y": 220,
+    "wires": []
+  },
+  {
+    "id": "inj_bateria",
+    "type": "inject",
+    "z": "tab_paso5",
+    "name": "batería validación",
+    "props": [],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "x": 170,
+    "y": 700,
+    "wires": [
+      [
+        "f_bateria"
+      ]
+    ]
+  },
+  {
+    "id": "f_bateria",
+    "type": "function",
+    "z": "tab_paso5",
+    "name": "Casos inválidos",
+    "func": "const now = new Date().toISOString();\nfunction caso(vp, raw) {\n    const payload = raw !== undefined ? raw : JSON.stringify({ VP: Object.assign({\n        desi: \"4\", dir: \"1\", loc: \"GPS\", lat: 60.17, long: 24.94, spd: 5, tst: now\n    }, vp || {}) });\n    return { payload, topic: \"/hfp/v2/journey/ongoing/vp/tram/0040/00997/1004/1/x/12:00/1130435/0/60;24/19/90/15\" };\n}\nreturn [[\n    caso(null, null),\n    caso(null, \"null\"),\n    caso(null, \"{\"),\n    caso({ tst: \"no-es-fecha\" }),\n    caso({ lat: null, long: null }),\n    caso({ lat: 999, long: 999 }),\n    caso({ spd: \"abc\" }),\n    caso(null, JSON.stringify({ VP: { loc: \"GPS\", tst: now, lat: 60.17, long: 24.94 } })),\n    caso({ loc: \"DR\" }),\n    caso({ tst: \"2020-01-01T00:00:00.000Z\" })\n]];\n",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 400,
+    "y": 700,
+    "wires": [
+      [
+        "f_validar"
+      ]
+    ]
+  },
+  {
+    "id": "inj_prueba_regla",
+    "type": "inject",
+    "z": "tab_reto",
+    "name": "prueba activar",
+    "props": [
+      {
+        "p": "prueba",
+        "v": "true",
+        "vt": "bool"
+      },
+      {
+        "p": "ahora",
+        "v": "10",
+        "vt": "num"
+      },
+      {
+        "p": "antes",
+        "v": "150",
+        "vt": "num"
+      },
+      {
+        "p": "nieve_cm_h",
+        "v": "0",
+        "vt": "num"
+      },
+      {
+        "p": "nieve_2h_cm",
+        "v": "1.2",
+        "vt": "num"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "x": 120,
+    "y": 500,
+    "wires": [
+      [
+        "f_decidir"
+      ]
+    ]
+  },
+  {
+    "id": "inj_caducar",
+    "type": "inject",
+    "z": "tab_reto",
+    "name": "prueba ts 2000",
+    "props": [],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "x": 120,
+    "y": 600,
+    "wires": [
+      [
+        "f_caducar"
+      ]
+    ]
+  },
+  {
+    "id": "f_caducar",
+    "type": "function",
+    "z": "tab_reto",
+    "name": "Caducar fuente",
+    "func": "const prev = flow.get(\"meteo\") || {};\nflow.set(\"meteo\", Object.assign({}, prev, { ts: \"2000-01-01T00:00:00Z\", forzado: true }));\nnode.status({ fill: \"yellow\", shape: \"ring\", text: \"ts 2000\" });\nreturn { payload: \"\", sintetico: true };",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 400,
+    "y": 600,
+    "wires": [
+      [
+        "f_decidir"
+      ]
+    ]
+  },
+  {
+    "id": "in_eta_mapa",
+    "type": "mqtt in",
+    "z": "tab_paso5",
+    "name": "ETA → mapa",
+    "topic": "prediccion/eta/#",
+    "qos": "0",
+    "datatype": "utf8",
+    "broker": "cfg_local",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 980,
+    "y": 360,
+    "wires": [
+      [
+        "f_mapa"
+      ]
+    ]
+  }
+]

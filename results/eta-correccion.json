@@ -1,0 +1,60 @@
+{
+  "metodo": "veh+parada+viaje, etiqueta conocida en el corte",
+  "posiciones_1hz": 30502,
+  "llegadas_ars": 280,
+  "filas": 884,
+  "vehiculos": [
+    "00415",
+    "00420",
+    "00426",
+    "00435",
+    "00633",
+    "00637",
+    "00644",
+    "00648"
+  ],
+  "desde": "2026-09-29T13:51:13.292000+00:00",
+  "hasta": "2026-09-29T13:54:50.164000+00:00",
+  "version": "piloto-1",
+  "filas_etiqueta_posterior_al_corte": 214,
+  "corte": "2026-09-29T13:53:59.198600+00:00",
+  "train": 493,
+  "test": 177,
+  "global": {
+    "n": 177,
+    "mae_base_s": 10.75,
+    "mae_modelo_s": 5.59
+  },
+  "importancia": {
+    "retraso_s": 926,
+    "spd": 1810,
+    "hora": 114,
+    "dia_semana": 0,
+    "dist_parada_m": 2693,
+    "retraso_medio_linea": 1812,
+    "nieve_cm_h": 0
+  },
+  "parado": {
+    "n": 15,
+    "mae_base_s": 54.88,
+    "mae_modelo_s": 5.4
+  },
+  "marcha": {
+    "n": 162,
+    "mae_base_s": 6.67,
+    "mae_modelo_s": 5.61
+  },
+  "lt30": {
+    "n": 138,
+    "mae_base_s": 10.51,
+    "mae_modelo_s": 4.05
+  },
+  "30a60": {
+    "n": 39,
+    "mae_base_s": 11.6,
+    "mae_modelo_s": 11.03
+  },
+  "gt60": null,
+  "span_horas": 0.06,
+  "error": "la ventana emparejada dura menos de una hora o no tiene horizonte de más de un minuto; no sustituye al modelo en servicio"
+}

@@ -1,0 +1,8 @@
+,result,table,_time,_field,_value
+,_result,0,2026-09-29T14:00:00Z,error_base,29.521060995419592
+,_result,0,2026-09-29T15:00:00Z,error_base,29.71222727989047
+,_result,0,2026-09-29T15:55:00Z,error_base,28.997106771222033
+,_result,1,2026-09-29T14:00:00Z,error_modelo,15.515243735228132
+,_result,1,2026-09-29T15:00:00Z,error_modelo,15.925321596850628
+,_result,1,2026-09-29T15:55:00Z,error_modelo,15.912153160781424
+

@@ -1,0 +1,218 @@
+{
+  "utc": "2026-09-30T05:19:49.574Z",
+  "scope": "funciones en memoria; sin MQTT ni Influx",
+  "total": 23,
+  "results": [
+    {
+      "name": "HSL inválido 1",
+      "pass": true,
+      "observed": "payload nulo"
+    },
+    {
+      "name": "HSL inválido 2",
+      "pass": true,
+      "observed": "payload no es objeto"
+    },
+    {
+      "name": "HSL inválido 3",
+      "pass": true,
+      "observed": "no JSON"
+    },
+    {
+      "name": "HSL inválido 4",
+      "pass": true,
+      "observed": "tst no interpretable"
+    },
+    {
+      "name": "HSL inválido 5",
+      "pass": true,
+      "observed": "sin GPS (loc=GPS)"
+    },
+    {
+      "name": "HSL inválido 6",
+      "pass": true,
+      "observed": "coordenadas fuera de rango 999,999"
+    },
+    {
+      "name": "HSL inválido 7",
+      "pass": true,
+      "observed": "velocidad imposible abc"
+    },
+    {
+      "name": "HSL inválido 8",
+      "pass": true,
+      "observed": "velocidad imposible undefined"
+    },
+    {
+      "name": "HSL inválido 9",
+      "pass": true,
+      "observed": "posición estimada: DR"
+    },
+    {
+      "name": "HSL inválido 10",
+      "pass": true,
+      "observed": "antigüedad 212908790 s"
+    },
+    {
+      "name": "HSL válido",
+      "pass": true
+    },
+    {
+      "name": "Decisión sin filas",
+      "pass": true,
+      "observed": {
+        "activar": false,
+        "valida": false,
+        "motivo": "histórico insuficiente",
+        "sintetico": false,
+        "ts_fuente": "2026-09-30T05:19:49.573Z",
+        "ts": "2026-09-30T05:19:49.573Z"
+      }
+    },
+    {
+      "name": "Decisión solo ahora",
+      "pass": true,
+      "observed": {
+        "activar": false,
+        "valida": false,
+        "motivo": "histórico insuficiente",
+        "sintetico": false,
+        "ts_fuente": "2026-09-30T05:19:49.573Z",
+        "ts": "2026-09-30T05:19:49.573Z"
+      }
+    },
+    {
+      "name": "Decisión valor vacío",
+      "pass": true,
+      "observed": {
+        "activar": false,
+        "valida": false,
+        "motivo": "histórico insuficiente",
+        "sintetico": false,
+        "ts_fuente": "2026-09-30T05:19:49.573Z",
+        "ts": "2026-09-30T05:19:49.573Z"
+      }
+    },
+    {
+      "name": "Decisión solo espacios",
+      "pass": true,
+      "observed": {
+        "activar": false,
+        "valida": false,
+        "motivo": "histórico insuficiente",
+        "sintetico": false,
+        "ts_fuente": "2026-09-30T05:19:49.573Z",
+        "ts": "2026-09-30T05:19:49.573Z"
+      }
+    },
+    {
+      "name": "Decisión no numérico",
+      "pass": true,
+      "observed": {
+        "activar": false,
+        "valida": false,
+        "motivo": "histórico insuficiente",
+        "sintetico": false,
+        "ts_fuente": "2026-09-30T05:19:49.573Z",
+        "ts": "2026-09-30T05:19:49.573Z"
+      }
+    },
+    {
+      "name": "Cero real válido",
+      "pass": true,
+      "observed": {
+        "activar": false,
+        "valida": true,
+        "nieve": false,
+        "empeora": false,
+        "hayVentanas": true,
+        "retraso_ahora_s": 0,
+        "retraso_antes_s": 10,
+        "nieve_2h_cm": 0,
+        "forzado": false,
+        "sintetico": false,
+        "motivo": "sin nieve ni empeora",
+        "ts_fuente": "2026-09-30T05:19:49.573Z",
+        "ts": "2026-09-30T05:19:49.573Z"
+      }
+    },
+    {
+      "name": "Empeora sin nieve",
+      "pass": true,
+      "observed": {
+        "activar": false,
+        "valida": true,
+        "nieve": false,
+        "empeora": true,
+        "hayVentanas": true,
+        "retraso_ahora_s": 10,
+        "retraso_antes_s": 150,
+        "nieve_2h_cm": 0,
+        "forzado": false,
+        "sintetico": false,
+        "motivo": "empeora sin nieve",
+        "ts_fuente": "2026-09-30T05:19:49.573Z",
+        "ts": "2026-09-30T05:19:49.573Z"
+      }
+    },
+    {
+      "name": "Umbral 90 estricto",
+      "pass": true,
+      "observed": {
+        "activar": false,
+        "valida": true,
+        "nieve": true,
+        "empeora": false,
+        "hayVentanas": true,
+        "retraso_ahora_s": 10,
+        "retraso_antes_s": 100,
+        "nieve_2h_cm": 1.2,
+        "forzado": false,
+        "sintetico": false,
+        "motivo": "nieve sin empeorar",
+        "ts_fuente": "2026-09-30T05:19:49.573Z",
+        "ts": "2026-09-30T05:19:49.573Z"
+      }
+    },
+    {
+      "name": "Activación con nieve y empeoramiento",
+      "pass": true,
+      "observed": {
+        "activar": true,
+        "valida": true,
+        "nieve": true,
+        "empeora": true,
+        "hayVentanas": true,
+        "retraso_ahora_s": 10,
+        "retraso_antes_s": 150,
+        "nieve_2h_cm": 1.2,
+        "forzado": false,
+        "sintetico": false,
+        "motivo": "nieve y empeora",
+        "ts_fuente": "2026-09-30T05:19:49.573Z",
+        "ts": "2026-09-30T05:19:49.573Z"
+      }
+    },
+    {
+      "name": "Contexto caducado",
+      "pass": true,
+      "observed": {
+        "activar": false,
+        "valida": false,
+        "motivo": "contexto caducado",
+        "sintetico": false,
+        "ts_fuente": "2000-01-01T00:00:00Z",
+        "ts": "2026-09-30T05:19:49.573Z"
+      }
+    },
+    {
+      "name": "Meteo válida",
+      "pass": true
+    },
+    {
+      "name": "Meteo nula no reemplaza contexto",
+      "pass": true,
+      "observed": "meteo con campo nulo"
+    }
+  ]
+}

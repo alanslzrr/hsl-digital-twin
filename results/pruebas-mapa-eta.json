@@ -1,0 +1,26 @@
+{
+  "utc": "2026-09-30T05:34:53.698Z",
+  "scope": "solo memoria, sin publicaciones",
+  "results": [
+    {
+      "name": "posición sin ETA",
+      "pass": true
+    },
+    {
+      "name": "ETA válida visible",
+      "pass": true
+    },
+    {
+      "name": "no mezclar viajes",
+      "pass": true
+    },
+    {
+      "name": "rechazar ETA caducada",
+      "pass": true
+    },
+    {
+      "name": "rechazar ETA negativa",
+      "pass": true
+    }
+  ]
+}

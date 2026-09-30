@@ -1,0 +1,44 @@
+name: hsl-digital-twin
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2
+    ports: ["127.0.0.1:1883:1883", "127.0.0.1:9001:9001"]
+    volumes: ["./infra/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro"]
+  nodered:
+    build: ./infra/nodered
+    ports: ["127.0.0.1:1880:1880"]
+    environment:
+      TZ: Europe/Madrid
+      INFLUX_TOKEN: ${INFLUX_TOKEN:?Completar INFLUX_TOKEN en .env}
+    volumes:
+      - nodered_data:/data
+      - ./data/stops-hsl.json:/data/stops-hsl.json:ro
+    depends_on: [mosquitto, influxdb]
+  influxdb:
+    image: influxdb:2.7
+    ports: ["127.0.0.1:8086:8086"]
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: lab
+      DOCKER_INFLUXDB_INIT_PASSWORD: ${INFLUX_PASSWORD:?Completar INFLUX_PASSWORD en .env}
+      DOCKER_INFLUXDB_INIT_ORG: lab
+      DOCKER_INFLUXDB_INIT_BUCKET: flota
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUX_TOKEN:?Completar INFLUX_TOKEN en .env}
+    volumes: ["influx_data:/var/lib/influxdb2"]
+  grafana:
+    image: grafana/grafana:latest
+    ports: ["127.0.0.1:3000:3000"]
+    environment:
+      GF_SECURITY_ADMIN_USER: lab
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:?Completar GRAFANA_PASSWORD en .env}
+      GF_UNIFIED_ALERTING_MIN_INTERVAL: 10s
+      INFLUX_TOKEN: ${INFLUX_TOKEN:?Completar INFLUX_TOKEN en .env}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./infra/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./infra/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on: [influxdb]
+volumes:
+  nodered_data:
+  influx_data:
+  grafana_data:

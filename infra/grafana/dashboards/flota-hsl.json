@@ -1,0 +1,588 @@
+{
+  "id": null,
+  "panels": [
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influx-flota"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0,
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influx-flota"
+          },
+          "query": "from(bucket: \"flota\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"vehiculo\" and r._field == \"retraso_s\" and not exists r.evento)\n  |> group(columns: [\"linea\"])\n  |> aggregateWindow(every: 1m, fn: mean, createEmpty: false)",
+          "refId": "A"
+        }
+      ],
+      "title": "Retraso por línea (s)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influx-flota"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0,
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 16,
+        "x": 0,
+        "y": 8
+      },
+      "id": 2,
+      "options": {},
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influx-flota"
+          },
+          "query": "from(bucket: \"flota\")\n  |> range(start: -5m)\n  |> filter(fn: (r) => r._measurement == \"vehiculo\" and r._field == \"retraso_s\" and not exists r.evento)\n  |> group(columns: [\"veh\", \"linea\"])\n  |> last()\n  |> group()\n  |> sort(columns: [\"_value\"])\n  |> limit(n: 5)\n  |> keep(columns: [\"linea\", \"veh\", \"_value\"])",
+          "refId": "A"
+        }
+      ],
+      "title": "Los 5 más retrasados",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influx-flota"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 8
+      },
+      "id": 3,
+      "options": {},
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influx-flota"
+          },
+          "query": "from(bucket: \"flota\")\n  |> range(start: -2m)\n  |> filter(fn: (r) => r._measurement == \"vehiculo\" and r._field == \"spd\")\n  |> group(columns: [\"veh\"]) |> last() |> group() |> count()",
+          "refId": "A"
+        }
+      ],
+      "title": "Vehículos activos",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influx-flota"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "spanNulls": true
+          },
+          "decimals": 1,
+          "unit": "none"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Retraso medio (s)"
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "left"
+              },
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "nieve_cm_h"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Nieve (cm/h)"
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              },
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 2
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 16
+      },
+      "id": 4,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influx-flota"
+          },
+          "query": "from(bucket: \"flota\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"vehiculo\" and r._field == \"retraso_s\" and not exists r.evento)\n  |> group()\n  |> aggregateWindow(every: 1m, fn: mean, createEmpty: false)",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influx-flota"
+          },
+          "query": "from(bucket: \"flota\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"clima\" and r._field == \"nieve_cm_h\")\n  |> aggregateWindow(every: 1m, fn: mean, createEmpty: false)",
+          "refId": "B"
+        }
+      ],
+      "title": "Retraso medio y nevada",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influx-flota"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 1
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "_time"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 175
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "activar"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 65
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "valida"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 65
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "motivo"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 190
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "nieve"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 65
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "empeora"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 75
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "retraso_ahora_s"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 125
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "retraso_antes_s"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 125
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "nieve_2h_cm"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 105
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sintetico"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 80
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 24
+      },
+      "id": 5,
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influx-flota"
+          },
+          "query": "from(bucket: \"flota\")\n  |> range(start: -6h)\n  |> filter(fn: (r) => r._measurement == \"decision\" and r.regla == \"plan_invierno\")\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> group()\n  |> sort(columns: [\"_time\"], desc: true)\n  |> limit(n: 8)\n  |> keep(columns: [\"_time\", \"activar\", \"valida\", \"motivo\", \"nieve\", \"empeora\", \"retraso_ahora_s\", \"retraso_antes_s\", \"nieve_2h_cm\", \"sintetico\"])",
+          "refId": "A"
+        }
+      ],
+      "title": "Decisión plan de invierno y su causa",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {},
+            "indexByName": {
+              "_time": 0,
+              "activar": 1,
+              "empeora": 5,
+              "motivo": 3,
+              "nieve": 4,
+              "nieve_2h_cm": 8,
+              "retraso_ahora_s": 6,
+              "retraso_antes_s": 7,
+              "sintetico": 9,
+              "valida": 2
+            },
+            "renameByName": {}
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influx-flota"
+      },
+      "description": "Evaluación cerrada del 29/09/2026, 13:51–15:55 UTC; solo piloto-1. La demostración piloto-1-refit del 30/09 no se agrega a esta evaluación.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineWidth": 1,
+            "spanNulls": false
+          },
+          "decimals": 1,
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 32
+      },
+      "id": 6,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influx-flota"
+          },
+          "query": "from(bucket: \"flota\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"error_eta\" and r.metodo == \"v2\" and r.version == \"piloto-1\" and (r._field == \"error_modelo\" or r._field == \"error_base\"))\n  |> group(columns: [\"_field\"])\n  |> aggregateWindow(every: 1h, fn: mean, createEmpty: false)\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])",
+          "refId": "A"
+        }
+      ],
+      "title": "Error de llegada v2 (s)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influx-flota"
+      },
+      "description": "Evaluación cerrada del 29/09/2026, 13:51–15:55 UTC; solo piloto-1. La demostración piloto-1-refit del 30/09 no se agrega a esta evaluación.",
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 2
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "horizonte"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 180
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "marcha"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 180
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "n"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 100
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "mae_base_s"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 160
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "mae_modelo_s"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 170
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 40
+      },
+      "id": 7,
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influx-flota"
+          },
+          "query": "datos = from(bucket: \"flota\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"error_eta\" and r.metodo == \"v2\" and r.version == \"piloto-1\" and (r._field == \"error_modelo\" or r._field == \"error_base\"))\n  |> group(columns: [\"horizonte\", \"marcha\", \"_field\"])\n  |> mean()\n  |> group(columns: [\"horizonte\", \"marcha\"])\n  |> pivot(rowKey: [\"horizonte\", \"marcha\"], columnKey: [\"_field\"], valueColumn: \"_value\")\nn = from(bucket: \"flota\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"error_eta\" and r.metodo == \"v2\" and r.version == \"piloto-1\" and r._field == \"y_s\")\n  |> group(columns: [\"horizonte\", \"marcha\"])\n  |> count()\n  |> rename(columns: {_value: \"n\"})\n  |> keep(columns: [\"horizonte\", \"marcha\", \"n\"])\njoin(tables: {d: datos, c: n}, on: [\"horizonte\", \"marcha\"])\n  |> group()\n  |> map(fn: (r) => ({\n      horizonte: if r.horizonte == \"lt30\" then \"< 30 s\" else if r.horizonte == \"30a60\" then \"30-60 s\" else \"> 60 s\",\n      marcha: if r.marcha == \"parado\" then \"parado\" else \"en marcha\",\n      n: r.n,\n      mae_base_s: r.error_base,\n      mae_modelo_s: r.error_modelo\n  }))\n  |> keep(columns: [\"horizonte\", \"marcha\", \"n\", \"mae_base_s\", \"mae_modelo_s\"])\n",
+          "refId": "A"
+        }
+      ],
+      "title": "MAE por horizonte y marcha",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {},
+            "indexByName": {
+              "horizonte": 0,
+              "mae_base_s": 3,
+              "mae_modelo_s": 4,
+              "marcha": 1,
+              "n": 2
+            },
+            "renameByName": {}
+          }
+        }
+      ],
+      "type": "table"
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 39,
+  "time": {
+    "from": "now-3h",
+    "to": "now"
+  },
+  "timezone": "browser",
+  "title": "Flota HSL",
+  "uid": "flota-hsl",
+  "version": 16
+}

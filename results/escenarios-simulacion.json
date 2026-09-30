@@ -1,0 +1,122 @@
+{
+  "run_id": "escenarios-20260930",
+  "factor_tiempo": 10,
+  "duracion_fase_sim_s": 1800,
+  "duracion_fase_real_aprox_s": 180,
+  "desde": "2026-09-30T14:14:19.283Z",
+  "hasta": "2026-09-30T14:32:57.945Z",
+  "filas": [
+    {
+      "fase": "Nominal",
+      "inicio_t_sim_s": 0,
+      "medicion_t_sim_s": 1801.0,
+      "irregularidad": 0.10627573902862562,
+      "retraso_medio_s": 106.1527485774467,
+      "vehiculos": 4,
+      "ts": "2026-09-30T14:17:25.096Z"
+    },
+    {
+      "fase": "Nieve",
+      "inicio_t_sim_s": 1801.0,
+      "medicion_t_sim_s": 3601.0,
+      "irregularidad": 0.13027355613354435,
+      "retraso_medio_s": -257.6527325338243,
+      "vehiculos": 4,
+      "ts": "2026-09-30T14:20:31.320Z"
+    },
+    {
+      "fase": "Nominal tras nieve",
+      "inicio_t_sim_s": 3602.0,
+      "medicion_t_sim_s": 5401.0,
+      "irregularidad": 0.16070917207271498,
+      "retraso_medio_s": -140.93140146519332,
+      "vehiculos": 4,
+      "ts": "2026-09-30T14:23:37.379Z"
+    },
+    {
+      "fase": "Corte",
+      "inicio_t_sim_s": 5402.0,
+      "medicion_t_sim_s": 7201.0,
+      "irregularidad": 1.7175454369866534,
+      "retraso_medio_s": -1439.6281551629572,
+      "vehiculos": 4,
+      "ts": "2026-09-30T14:26:43.361Z"
+    },
+    {
+      "fase": "Nominal tras corte",
+      "inicio_t_sim_s": 7201.0,
+      "medicion_t_sim_s": 9001.0,
+      "irregularidad": 1.436167982755892,
+      "retraso_medio_s": -1459.721191483845,
+      "vehiculos": 4,
+      "ts": "2026-09-30T14:29:49.069Z"
+    },
+    {
+      "fase": "Refuerzo +2",
+      "inicio_t_sim_s": 9002.0,
+      "medicion_t_sim_s": 10801.0,
+      "irregularidad": 0.7699042248361571,
+      "retraso_medio_s": -876.9207779290355,
+      "vehiculos": 6,
+      "ts": "2026-09-30T14:32:54.854Z"
+    }
+  ],
+  "comandos": [
+    {
+      "tipo": "comando",
+      "comando": {
+        "escenario": "nieve",
+        "run_id": "escenarios-20260930"
+      },
+      "ts": "2026-09-30T14:17:25.172Z",
+      "run_id": "escenarios-20260930",
+      "t_sim_s": 1801.0,
+      "factor_tiempo": 10.0
+    },
+    {
+      "tipo": "comando",
+      "comando": {
+        "escenario": "normal",
+        "run_id": "escenarios-20260930"
+      },
+      "ts": "2026-09-30T14:20:31.471Z",
+      "run_id": "escenarios-20260930",
+      "t_sim_s": 3602.0,
+      "factor_tiempo": 10.0
+    },
+    {
+      "tipo": "comando",
+      "comando": {
+        "escenario": "corte",
+        "run_id": "escenarios-20260930"
+      },
+      "ts": "2026-09-30T14:23:37.571Z",
+      "run_id": "escenarios-20260930",
+      "t_sim_s": 5402.0,
+      "factor_tiempo": 10.0
+    },
+    {
+      "tipo": "comando",
+      "comando": {
+        "escenario": "normal",
+        "run_id": "escenarios-20260930"
+      },
+      "ts": "2026-09-30T14:26:43.439Z",
+      "run_id": "escenarios-20260930",
+      "t_sim_s": 7201.0,
+      "factor_tiempo": 10.0
+    },
+    {
+      "tipo": "comando",
+      "comando": {
+        "vehiculos": 2,
+        "run_id": "escenarios-20260930"
+      },
+      "ts": "2026-09-30T14:29:49.177Z",
+      "run_id": "escenarios-20260930",
+      "t_sim_s": 9002.0,
+      "factor_tiempo": 10.0
+    }
+  ],
+  "sha256_registro": "163b0d328afa204aa1dd3da2d99c662a90b70bb0d78fc13371b3c6687961116b"
+}

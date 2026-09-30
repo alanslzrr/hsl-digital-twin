@@ -14,7 +14,9 @@ jobs:
         with:
           python-version: '3.12'
       - name: Probar funciones sin servicios externos
-        run: node --test tests/funciones.test.cjs
+        run: node --test tests/*.test.cjs
+      - name: Probar el motor de simulación
+        run: python -m unittest discover -s tests -p "test_*.py"
       - name: Revisar publicación y métricas
         run: python scripts/verificar_publicacion.py
       - name: Validar Compose sin arrancar contenedores

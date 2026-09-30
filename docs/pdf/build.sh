@@ -143,7 +143,13 @@ PY
     latexmk -pdf -bibtex -interaction=nonstopmode -halt-on-error -quiet document.tex
   )
 
-  cp "$BUILD_DIR/document.pdf" "$OUT_PDF"
+  if command -v gs >/dev/null 2>&1; then
+    gs -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -dCompatibilityLevel=1.7 \
+      -dPDFSETTINGS=/ebook -dColorImageResolution=170 -dGrayImageResolution=170 \
+      -dEmbedAllFonts=true -sOutputFile="$OUT_PDF" "$BUILD_DIR/document.pdf"
+  else
+    cp "$BUILD_DIR/document.pdf" "$OUT_PDF"
+  fi
   echo "✅ PDF: $(pwd)/$OUT_PDF"
 }
 

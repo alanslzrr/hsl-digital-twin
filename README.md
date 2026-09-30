@@ -2,7 +2,7 @@
 
 # Flota HSL
 
-**Seguimiento de tranvías y predicción de llegada en Helsinki**
+**Seguimiento, simulación y predicción de llegada en Helsinki**
 
 [![Grafana 13.2.2](docs/badges/grafana.svg)](https://grafana.com/)
 [![Node-RED 5.0.7](docs/badges/nodered.svg)](https://nodered.org/)
@@ -17,9 +17,9 @@ Un sistema que recibe las posiciones de la línea 4 de Helsinki, comprueba sus d
 
 ## El mapa en funcionamiento
 
-![Actualización de los tranvías de la línea 4 en Worldmap](docs/demo/flota-en-vivo.gif)
+![Flota real y simulada en Worldmap](docs/demo/flota-simulacion.gif)
 
-Grabación del laboratorio del 30 de septiembre de 2026. Los marcadores cambian de posición a medida que llegan mensajes HSL a Node-RED. La secuencia se reproduce en 16 segundos y se repite automáticamente.
+Grabación del laboratorio del 30 de septiembre de 2026. Los marcadores reales reciben HSL y los naranjas pertenecen al simulador. La grabación conserva unos treinta segundos del laboratorio y se repite automáticamente.
 
 ## Del mensaje al panel
 
@@ -32,6 +32,14 @@ HSL publica posiciones y eventos por MQTT. Node-RED valida y normaliza los mensa
 | Posiciones, velocidad y estado de cada vehículo | Decisión según nieve prevista y evolución del retraso | Comparación del modelo con una línea base cinemática |
 | Validación, mensajes retenidos y almacenamiento temporal | Comprobación de ventanas completas y datos vigentes | Evaluación por horizonte, viaje, parada y estado de marcha |
 | [Contrato MQTT](docs/contrato-mqtt.md) | [Diagrama de la decisión](docs/diagrams/plan-invierno.svg) | [Diagrama de evaluación](docs/diagrams/evaluacion-eta.svg) |
+
+## Una flota donde probar decisiones
+
+El simulador reconstruye la ruta observada, reproduce marcha y paradas y compara nieve, cortes y refuerzos. La regla de retención consulta la regularidad antes de actuar y solo envía órdenes a vehículos simulados. Las posiciones sintéticas quedan separadas de HSL, del plan de invierno y del ETA.
+
+![Simulación y control de la flota](docs/diagrams/simulacion.svg)
+
+La observación en vivo reunió cuatro parejas durante treinta minutos. Los ensayos pareados muestran que retener más tiempo puede empeorar la regularidad; no identifican un óptimo económico sin datos de pasajeros. La [simulación completa](docs/simulacion.md) reúne S1–S5, figuras, parámetros y resultados.
 
 ## Resultados de la comparación
 
@@ -55,19 +63,20 @@ El modelo reduce el error global de esta ventana, pero la línea base funciona m
 | [Flujo de Node-RED](flows/hsl.json) | Adquisición, validación, mapa y reglas meteorológicas |
 | [Servicio ETA](src/eta_ml.py) | Preparación de datos, entrenamiento, inferencia y evaluación |
 | [Configuración del entorno](compose.yaml) | Contenedores, red y volúmenes persistentes |
-| [Pruebas de funciones](tests/funciones.test.cjs) | 30 casos aislados sin escribir en el laboratorio |
+| [Pruebas de funciones](tests/funciones.test.cjs) · [Integración simulada](tests/simulacion.test.cjs) · [Motor](tests/test_simulacion.py) | 61 casos aislados sin escribir en el laboratorio |
 | [Resultados guardados](results/) | Métricas agregadas y registros de comprobación |
 
 ## Ejecutarlo en local
 
 La [guía de puesta en marcha](docs/puesta-en-marcha.md) explica la configuración del entorno y las conexiones entre servicios. Los logos de la cabecera indican las versiones comprobadas en el laboratorio. La configuración de Docker conserva las etiquetas de imagen definidas en `compose.yaml`.
 
-El repositorio incluye el código, las paradas, los flujos, los paneles y los resultados resumidos. Los históricos individuales y los pesos del modelo se conservan fuera de Git. Para emitir nuevas predicciones hay que recopilar datos y entrenar un modelo. El sistema no actúa sobre vehículos ni activa recursos físicos.
+El repositorio incluye el código, las paradas, los flujos, los paneles y los resultados resumidos. Los históricos individuales y los pesos del modelo se conservan fuera de Git. Para emitir nuevas predicciones hay que recopilar datos y entrenar un modelo. El sistema actúa sobre vehículos simulados, nunca sobre transporte real ni recursos físicos.
 
 Las pruebas de funciones se ejecutan sin iniciar los contenedores.
 
 ```sh
-node --test tests/funciones.test.cjs
+node --test tests/*.test.cjs
+python3 -m unittest discover -s tests -p "test_*.py"
 python3 scripts/verificar_publicacion.py
 ```
 

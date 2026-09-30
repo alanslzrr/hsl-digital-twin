@@ -46,7 +46,7 @@ def frame(q):
 def cargar_posiciones():
     q = f'''
     from(bucket: "{BUCKET}") |> range(start: {DESDE})
-      |> filter(fn: (r) => r._measurement == "vehiculo" and not exists r.evento)
+      |> filter(fn: (r) => r._measurement == "vehiculo" and (not exists r.src or r.src != "sim") and not exists r.evento)
       |> filter(fn: (r) => r._field == "spd" or r._field == "retraso_s" or r._field == "dist_parada_m"
           or r._field == "parada_id" or r._field == "jrn" or r._field == "start_hhmm" or r._field == "oday_n")
       |> filter(fn: (r) => r.linea == "4")
@@ -64,7 +64,7 @@ def cargar_posiciones():
 def cargar_llegadas():
     q = f'''
     from(bucket: "{BUCKET}") |> range(start: {DESDE})
-      |> filter(fn: (r) => r._measurement == "vehiculo" and r.evento == "ars" and r._field == "spd")
+      |> filter(fn: (r) => r._measurement == "vehiculo" and (not exists r.src or r.src != "sim") and r.evento == "ars" and r._field == "spd")
       |> keep(columns: ["_time", "veh", "parada", "viaje", "linea"])
     '''
     df = frame(q)
@@ -386,7 +386,7 @@ def servir():
     def cerrar_errores():
         q = f'''
         from(bucket: "{BUCKET}") |> range(start: -30m)
-          |> filter(fn: (r) => r._measurement == "vehiculo" and r.evento == "ars" and r._field == "spd")
+          |> filter(fn: (r) => r._measurement == "vehiculo" and (not exists r.src or r.src != "sim") and r.evento == "ars" and r._field == "spd")
           |> keep(columns: ["_time", "veh", "parada", "viaje"])
         '''
         try:

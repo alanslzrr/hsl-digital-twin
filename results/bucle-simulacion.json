@@ -1,0 +1,33 @@
+{
+  "run_id": "bucle-20260930",
+  "sintetico": true,
+  "contexto_tren": "disparo de prueba con 300 s de retraso, no tren observado",
+  "autorizada": {
+    "activar": true,
+    "motivo": "tren retrasado y regularidad admisible",
+    "irregularidad": 2.380227104578758e-16,
+    "run_id": "bucle-20260930",
+    "esperar_s": 60,
+    "solicitud_id": "control-aceptar-60",
+    "sintetico": true,
+    "ts": "2026-09-30T14:26:17.317Z"
+  },
+  "aplicada": {
+    "tipo": "retencion_aplicada",
+    "veh": "00001",
+    "esperar_s": 60,
+    "ts": "2026-09-30T14:26:18.589Z",
+    "run_id": "bucle-20260930",
+    "t_sim_s": 55.0,
+    "factor_tiempo": 40.0
+  },
+  "irregularidad_al_bloquear": 0.40310157524694196,
+  "bloqueada": {
+    "activar": false,
+    "motivo": "irregularidad superior a 0,3",
+    "solicitud_id": "control-bloquear-240",
+    "run_id": "bucle-20260930",
+    "ts": "2026-09-30T14:26:25.756Z",
+    "sintetico": true
+  }
+}

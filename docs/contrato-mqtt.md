@@ -35,3 +35,18 @@ El servicio ETA exige posición y estado vigentes y un desfase no mayor de cinco
 ## Nodos para consultar el código
 
 La lógica está en `flows/hsl.json`. Buscar los identificadores `f_validar`, `f_normalizar`, `f_meteo`, `f_decidir` y `f_mapa`. La función `f_flux_hdr` lee el token de `INFLUX_TOKEN`; las credenciales del nodo InfluxDB se configuran localmente en el editor.
+
+## Simulación y actuación
+
+| Topic | Contenido |
+| --- | --- |
+| `sim/hsl/tram/99xx/<veh>/posicion` y `/estado` | Contrato de posición y estado, `run_id`, fecha real, tiempo virtual y factor temporal; retenidos |
+| `sim/kpi` | CV del espaciado, retraso, número de vehículos y escenario cada treinta segundos virtuales |
+| `sim/residuo/<veh>` | Vehículo real asociado, residuo previo y posterior, fase y ganancia |
+| `sim/cmd` | Cambio de escenario o parámetros; incluir `run_id` para aislar el ensayo |
+| `sim/evento` | Comandos aceptados, retenciones aplicadas y fin del ensayo |
+| `sim/solicitud_retencion` | Petición sintética con retraso del tren, vehículo, operador, espera e identificador |
+| `decision/retener/sim/99xx/<veh>` | Orden de espera en la próxima parada, dirigida al ensayo; QoS 1 no retenido |
+| `sim/decision_retencion` | Autorización o rechazo con motivo |
+
+La posición simulada se guarda con `src=sim`. El residuo usa `src=real` porque su corrección depende de una observación real; pertenece a `residuo_sim`, no al histórico de posiciones HSL. La primera alineación tiene `fase=alineacion_inicial` y queda fuera de las métricas predictivas. Las consultas reales y el entrenamiento ETA excluyen `src=sim`.

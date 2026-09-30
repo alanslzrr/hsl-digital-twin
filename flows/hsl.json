@@ -159,7 +159,7 @@
     "type": "function",
     "z": "tab_paso5",
     "name": "Normalizar HSL",
-    "func": "let d;\ntry { d = JSON.parse(msg.payload); }\ncatch (e) { node.warn(\"payload no JSON: \" + String(msg.payload).slice(0, 60)); return null; }\nconst vp = d.VP;\nif (!vp) return null;\n\nconst t = msg.topic.split(\"/\");\nconst modo = t[6], oper = t[7], veh = t[8];\nconst base = `flota/hsl/${modo}/${oper}/${veh}`;\nconst stopId = String(vp.stop != null ? vp.stop : (t[13] || \"\"));\nconst paradas = flow.get(\"paradas\") || {};\nconst coord = paradas[stopId];\nlet dist = null;\nif (stopId && coord && Number.isFinite(vp.lat) && Number.isFinite(vp.long)) {\n    const R = 6371000;\n    const rad = Math.PI / 180;\n    const dLat = (coord[0] - vp.lat) * rad;\n    const dLon = (coord[1] - vp.long) * rad;\n    const a = Math.sin(dLat / 2) ** 2 + Math.cos(vp.lat * rad) * Math.cos(coord[0] * rad) * Math.sin(dLon / 2) ** 2;\n    dist = 2 * R * Math.asin(Math.min(1, Math.sqrt(a)));\n}\nconst oday = String(vp.oday || \"\");\nconst startRaw = String(vp.start || t[12] || \"\");\nconst startHHMM = Number(startRaw.replace(\":\", \"\"));\nconst odayN = Number(oday.replace(/-/g, \"\"));\nconst jrn = Number(vp.jrn);\nconst viaje = (oday && Number.isFinite(startHHMM) && Number.isFinite(jrn))\n    ? `${oday}_${String(startHHMM).padStart(4, \"0\")}_${jrn}` : null;\nconst parada = /^\\d+$/.test(stopId) ? stopId : null;\nconst retraso = (vp.dl == null || !Number.isFinite(Number(vp.dl))) ? null : Number(vp.dl);\n\nconst posicion = {\n    topic: `${base}/posicion`, retain: true, qos: 0,\n    payload: {\n        lat: vp.lat, lon: vp.long, spd: vp.spd, hdg: vp.hdg, ts: vp.tst, src: \"hsl\",\n        dist_parada_m: Number.isFinite(dist) ? Math.round(dist) : null,\n        parada, viaje\n    }\n};\nconst estado = {\n    topic: `${base}/estado`, retain: true, qos: 0,\n    payload: {\n        linea: vp.desi, dir: vp.dir, retraso_s: retraso,\n        puertas: vp.drst === 1 ? \"ABIERTAS\" : \"CERRADAS\",\n        parada, viaje, ts: vp.tst, src: \"hsl\"\n    }\n};\nconst fields = { puertas_abiertas: vp.drst === 1 ? 1 : 0, lat: vp.lat, lon: vp.long };\nif (Number.isFinite(Number(vp.spd))) fields.spd = Number(vp.spd);\nif (retraso != null) fields.retraso_s = retraso;\nif (Number.isFinite(dist)) fields.dist_parada_m = Math.round(dist);\nif (parada) fields.parada_id = Number(parada);\nif (Number.isFinite(jrn)) fields.jrn = jrn;\nif (Number.isFinite(startHHMM)) fields.start_hhmm = startHHMM;\nif (Number.isFinite(odayN)) fields.oday_n = odayN;\nconst tags = { modo, oper, veh, linea: String(vp.desi), dir: String(vp.dir) };\nreturn [[posicion, estado], { payload: [fields, tags] }];\n",
+    "func": "let d;\ntry { d = JSON.parse(msg.payload); }\ncatch (e) { node.warn(\"payload no JSON: \" + String(msg.payload).slice(0, 60)); return null; }\nconst vp = d.VP;\nif (!vp) return null;\n\nconst t = msg.topic.split(\"/\");\nconst modo = t[6], oper = t[7], veh = t[8];\nconst base = `flota/hsl/${modo}/${oper}/${veh}`;\nconst stopId = String(vp.stop != null ? vp.stop : (t[13] || \"\"));\nconst paradas = flow.get(\"paradas\") || {};\nconst coord = paradas[stopId];\nlet dist = null;\nif (stopId && coord && Number.isFinite(vp.lat) && Number.isFinite(vp.long)) {\n    const R = 6371000;\n    const rad = Math.PI / 180;\n    const dLat = (coord[0] - vp.lat) * rad;\n    const dLon = (coord[1] - vp.long) * rad;\n    const a = Math.sin(dLat / 2) ** 2 + Math.cos(vp.lat * rad) * Math.cos(coord[0] * rad) * Math.sin(dLon / 2) ** 2;\n    dist = 2 * R * Math.asin(Math.min(1, Math.sqrt(a)));\n}\nconst oday = String(vp.oday || \"\");\nconst startRaw = String(vp.start || t[12] || \"\");\nconst startHHMM = Number(startRaw.replace(\":\", \"\"));\nconst odayN = Number(oday.replace(/-/g, \"\"));\nconst jrn = Number(vp.jrn);\nconst viaje = (oday && Number.isFinite(startHHMM) && Number.isFinite(jrn))\n    ? `${oday}_${String(startHHMM).padStart(4, \"0\")}_${jrn}` : null;\nconst parada = /^\\d+$/.test(stopId) ? stopId : null;\nconst retraso = (vp.dl == null || !Number.isFinite(Number(vp.dl))) ? null : Number(vp.dl);\n\nconst posicion = {\n    topic: `${base}/posicion`, retain: true, qos: 0,\n    payload: {\n        lat: vp.lat, lon: vp.long, spd: vp.spd, hdg: vp.hdg, ts: vp.tst, src: \"hsl\",\n        dist_parada_m: Number.isFinite(dist) ? Math.round(dist) : null,\n        parada, viaje\n    }\n};\nconst estado = {\n    topic: `${base}/estado`, retain: true, qos: 0,\n    payload: {\n        linea: vp.desi, dir: vp.dir, retraso_s: retraso,\n        puertas: vp.drst === 1 ? \"ABIERTAS\" : \"CERRADAS\",\n        parada, viaje, ts: vp.tst, src: \"hsl\"\n    }\n};\nconst fields = { puertas_abiertas: vp.drst === 1 ? 1 : 0, lat: vp.lat, lon: vp.long };\nif (Number.isFinite(Number(vp.spd))) fields.spd = Number(vp.spd);\nif (retraso != null) fields.retraso_s = retraso;\nif (Number.isFinite(dist)) fields.dist_parada_m = Math.round(dist);\nif (parada) fields.parada_id = Number(parada);\nif (Number.isFinite(jrn)) fields.jrn = jrn;\nif (Number.isFinite(startHHMM)) fields.start_hhmm = startHHMM;\nif (Number.isFinite(odayN)) fields.oday_n = odayN;\nconst tags = { src: \"real\", modo, oper, veh, linea: String(vp.desi), dir: String(vp.dir) };\nreturn [[posicion, estado], { payload: [fields, tags] }];\n",
     "outputs": 2,
     "timeout": 0,
     "noerr": 0,
@@ -362,7 +362,6 @@
     "insecureHTTPParser": false,
     "authType": "",
     "senderr": false,
-    "headers": [],
     "x": 350,
     "y": 80,
     "wires": [
@@ -448,7 +447,7 @@
     "once": false,
     "onceDelay": "20",
     "topic": "",
-    "payload": "ahora = from(bucket: \"flota\")\n  |> range(start: -10m)\n  |> filter(fn: (r) => r._measurement == \"vehiculo\" and r._field == \"retraso_s\" and not exists r.evento)\n  |> group()\n  |> mean()\n  |> map(fn: (r) => ({_value: r._value, ventana: \"ahora\"}))\nantes = from(bucket: \"flota\")\n  |> range(start: -70m, stop: -60m)\n  |> filter(fn: (r) => r._measurement == \"vehiculo\" and r._field == \"retraso_s\" and not exists r.evento)\n  |> group()\n  |> mean()\n  |> map(fn: (r) => ({_value: r._value, ventana: \"antes\"}))\nunion(tables: [ahora, antes])\n",
+    "payload": "ahora = from(bucket: \"flota\")\n  |> range(start: -10m)\n  |> filter(fn: (r) => r._measurement == \"vehiculo\" and (not exists r.src or r.src != \"sim\") and r._field == \"retraso_s\" and not exists r.evento)\n  |> group()\n  |> mean()\n  |> map(fn: (r) => ({_value: r._value, ventana: \"ahora\"}))\nantes = from(bucket: \"flota\")\n  |> range(start: -70m, stop: -60m)\n  |> filter(fn: (r) => r._measurement == \"vehiculo\" and (not exists r.src or r.src != \"sim\") and r._field == \"retraso_s\" and not exists r.evento)\n  |> group()\n  |> mean()\n  |> map(fn: (r) => ({_value: r._value, ventana: \"antes\"}))\nunion(tables: [ahora, antes])\n",
     "payloadType": "str",
     "x": 120,
     "y": 300,
@@ -473,7 +472,6 @@
     "insecureHTTPParser": false,
     "authType": "",
     "senderr": false,
-    "headers": [],
     "x": 580,
     "y": 300,
     "wires": [
@@ -924,5 +922,397 @@
         "f_mapa"
       ]
     ]
+  },
+  {
+    "id": "sim_tab",
+    "type": "tab",
+    "label": "Simulación · escenarios y control",
+    "disabled": false,
+    "info": "Flota sintética y sincronizada. Las retenciones solo actúan sobre sim/."
+  },
+  {
+    "id": "sim_in",
+    "z": "sim_tab",
+    "type": "mqtt in",
+    "name": "Flota simulada",
+    "x": 140,
+    "y": 80,
+    "wires": [
+      [
+        "sim_guardar",
+        "sim_mapa"
+      ]
+    ],
+    "topic": "sim/hsl/#",
+    "qos": "0",
+    "datatype": "json",
+    "broker": "cfg_local",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0
+  },
+  {
+    "id": "sim_in_kpi",
+    "z": "sim_tab",
+    "type": "mqtt in",
+    "name": "sim/kpi",
+    "x": 140,
+    "y": 150,
+    "wires": [
+      [
+        "sim_guardar"
+      ]
+    ],
+    "topic": "sim/kpi",
+    "qos": "0",
+    "datatype": "json",
+    "broker": "cfg_local",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0
+  },
+  {
+    "id": "sim_in_res",
+    "z": "sim_tab",
+    "type": "mqtt in",
+    "name": "sim/residuo/+",
+    "x": 140,
+    "y": 220,
+    "wires": [
+      [
+        "sim_guardar"
+      ]
+    ],
+    "topic": "sim/residuo/+",
+    "qos": "0",
+    "datatype": "json",
+    "broker": "cfg_local",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0
+  },
+  {
+    "id": "sim_in_event",
+    "z": "sim_tab",
+    "type": "mqtt in",
+    "name": "sim/evento",
+    "x": 140,
+    "y": 290,
+    "wires": [
+      [
+        "sim_guardar"
+      ]
+    ],
+    "topic": "sim/evento",
+    "qos": "0",
+    "datatype": "json",
+    "broker": "cfg_local",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0
+  },
+  {
+    "id": "sim_in_decision",
+    "z": "sim_tab",
+    "type": "mqtt in",
+    "name": "sim/decision_retencion",
+    "x": 140,
+    "y": 330,
+    "wires": [
+      [
+        "sim_guardar"
+      ]
+    ],
+    "topic": "sim/decision_retencion",
+    "qos": "0",
+    "datatype": "json",
+    "broker": "cfg_local",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0
+  },
+  {
+    "id": "sim_guardar",
+    "z": "sim_tab",
+    "type": "function",
+    "name": "Guardar telemetría simulada",
+    "x": 430,
+    "y": 180,
+    "wires": [
+      [
+        "sim_out_veh"
+      ],
+      [
+        "sim_out_kpi"
+      ],
+      [
+        "sim_out_res"
+      ],
+      [
+        "sim_out_event"
+      ]
+    ],
+    "func": "const p = msg.payload;\nif (!p || typeof p !== 'object' || Array.isArray(p)) return null;\nconst parts = String(msg.topic).split('/');\nconst run = String(p.run_id || 'sin_run');\nconst finite = v => typeof v === 'number' && Number.isFinite(v);\nconst outputs = [null, null, null, null];\nif (parts[0] === 'sim' && parts[1] === 'hsl' && parts.length === 6) {\n    const fields = {};\n    for (const k of ['lat', 'lon', 'spd', 'hdg', 'dist_parada_m', 'retraso_s', 't_sim_s', 'factor_tiempo']) if (finite(p[k])) fields[k] = p[k];\n    if (parts[5] === 'estado') fields.puertas_abiertas = p.puertas === 'ABIERTAS' ? 1 : 0;\n    if (!Object.keys(fields).length) return null;\n    outputs[0] = { payload: [fields, { src: 'sim', modo: parts[2], oper: parts[3], veh: parts[4], linea: 'SIM', dir: '1', run_id: run }] };\n} else if (msg.topic === 'sim/kpi') {\n    const fields = {};\n    for (const k of ['vehiculos', 'headway_medio_s', 'irregularidad', 'retraso_medio_s', 't_sim_s', 'factor_tiempo', 'beta', 'factor_velocidad', 'dwell_extra', 'ganancia']) if (finite(p[k])) fields[k] = p[k];\n    if (!finite(p.irregularidad) || p.irregularidad < 0 || !Number.isFinite(Date.parse(p.ts))) return null;\n    flow.set('sim_kpi', p);\n    flow.set('sim_kpi_' + run, p);\n    outputs[1] = { payload: [fields, { run_id: run, escenario: String(p.escenario), src: 'sim' }] };\n} else if (parts[1] === 'residuo') {\n    const fields = {};\n    for (const k of ['residuo_m', 'residuo_posterior_m', 'distancia_ruta_m', 'ganancia', 't_sim_s']) if (finite(p[k])) fields[k] = p[k];\n    if (!finite(p.residuo_m)) return null;\n    outputs[2] = { payload: [fields, { run_id: run, veh: parts[2], veh_real: String(p.veh_real), src: String(p.src), fase: String(p.fase || 'prediccion') }] };\n} else if (msg.topic === 'sim/evento' || msg.topic === 'sim/decision_retencion') {\n    outputs[3] = { payload: [{ valor: 1, t_sim_s: finite(p.t_sim_s) ? p.t_sim_s : 0, detalle: JSON.stringify(p) }, { run_id: run, tipo: String(p.tipo || (p.activar ? 'retencion_autorizada' : 'retencion_bloqueada')), veh: String(p.veh || '') }] };\n}\nreturn outputs;\n",
+    "outputs": 4,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": []
+  },
+  {
+    "id": "sim_out_veh",
+    "z": "sim_tab",
+    "type": "influxdb out",
+    "name": "vehiculo",
+    "x": 760,
+    "y": 70,
+    "wires": [
+      []
+    ],
+    "influxdb": "cfg_influx",
+    "measurement": "vehiculo",
+    "precision": "",
+    "retentionPolicy": "",
+    "database": "database",
+    "precisionV18FluxV20": "ms",
+    "retentionPolicyV18Flux": "",
+    "org": "lab",
+    "bucket": "flota"
+  },
+  {
+    "id": "sim_out_kpi",
+    "z": "sim_tab",
+    "type": "influxdb out",
+    "name": "kpi_sim",
+    "x": 760,
+    "y": 140,
+    "wires": [
+      []
+    ],
+    "influxdb": "cfg_influx",
+    "measurement": "kpi_sim",
+    "precision": "",
+    "retentionPolicy": "",
+    "database": "database",
+    "precisionV18FluxV20": "ms",
+    "retentionPolicyV18Flux": "",
+    "org": "lab",
+    "bucket": "flota"
+  },
+  {
+    "id": "sim_out_res",
+    "z": "sim_tab",
+    "type": "influxdb out",
+    "name": "residuo_sim",
+    "x": 760,
+    "y": 210,
+    "wires": [
+      []
+    ],
+    "influxdb": "cfg_influx",
+    "measurement": "residuo_sim",
+    "precision": "",
+    "retentionPolicy": "",
+    "database": "database",
+    "precisionV18FluxV20": "ms",
+    "retentionPolicyV18Flux": "",
+    "org": "lab",
+    "bucket": "flota"
+  },
+  {
+    "id": "sim_out_event",
+    "z": "sim_tab",
+    "type": "influxdb out",
+    "name": "evento_sim",
+    "x": 760,
+    "y": 280,
+    "wires": [
+      []
+    ],
+    "influxdb": "cfg_influx",
+    "measurement": "evento_sim",
+    "precision": "",
+    "retentionPolicy": "",
+    "database": "database",
+    "precisionV18FluxV20": "ms",
+    "retentionPolicyV18Flux": "",
+    "org": "lab",
+    "bucket": "flota"
+  },
+  {
+    "id": "sim_mapa",
+    "z": "sim_tab",
+    "type": "function",
+    "name": "Mapa · capa naranja",
+    "x": 430,
+    "y": 360,
+    "wires": [
+      [
+        "sim_link_out"
+      ]
+    ],
+    "func": "const parts = String(msg.topic).split('/');\nconst p = msg.payload;\nif (parts.length !== 6 || !p || typeof p !== 'object' || Array.isArray(p)) return null;\nconst key = parts.slice(2, 5).join('/');\nif (parts[5] === 'estado') flow.set('sim_estado_' + key, p);\nif (parts[5] === 'posicion') flow.set('sim_pos_' + key, p);\nconst pos = flow.get('sim_pos_' + key);\nconst estado = flow.get('sim_estado_' + key) || {};\nif (!pos || !Number.isFinite(pos.lat) || !Number.isFinite(pos.lon)) return null;\nconst edad = (Date.now() - Date.parse(pos.ts)) / 1000;\nif (!Number.isFinite(edad) || edad < -5 || edad > 15) return null;\nreturn {payload: {\n    name: 'sim_' + parts[3] + '_' + parts[4], lat: pos.lat, lon: pos.lon,\n    icon: 'circle', iconColor: 'orange', layer: parts[3] === '9998' ? 'sim sintética' : parts[3] === '9997' ? 'sim prueba de control' : 'sim',\n    velocidad: Number(pos.spd || 0).toFixed(1) + ' m/s',\n    puertas: estado.puertas || '—', retraso: Number(estado.retraso_s || 0).toFixed(0) + ' s',\n    ensayo: String(pos.run_id || ''), tiempo_simulado: Number(pos.t_sim_s || 0).toFixed(0) + ' s'\n}};\n",
+    "outputs": 1,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": []
+  },
+  {
+    "id": "sim_link_out",
+    "z": "sim_tab",
+    "type": "link out",
+    "name": "Mapa compartido",
+    "x": 700,
+    "y": 360,
+    "wires": [],
+    "mode": "link",
+    "links": [
+      "sim_link_in"
+    ]
+  },
+  {
+    "id": "sim_link_in",
+    "z": "tab_paso5",
+    "type": "link in",
+    "name": "Flota simulada",
+    "x": 1020,
+    "y": 220,
+    "wires": [
+      [
+        "worldmap"
+      ]
+    ],
+    "links": [
+      "sim_link_out"
+    ]
+  },
+  {
+    "id": "sim_sol",
+    "z": "sim_tab",
+    "type": "mqtt in",
+    "name": "Prueba de conexión del tren",
+    "x": 170,
+    "y": 470,
+    "wires": [
+      [
+        "sim_retener"
+      ]
+    ],
+    "topic": "sim/solicitud_retencion",
+    "qos": "1",
+    "datatype": "json",
+    "broker": "cfg_local",
+    "nl": false,
+    "rap": false,
+    "rh": 2,
+    "inputs": 0
+  },
+  {
+    "id": "sim_retener",
+    "z": "sim_tab",
+    "type": "function",
+    "name": "Retener solo si CV ≤ 0,3",
+    "x": 440,
+    "y": 470,
+    "wires": [
+      [
+        "sim_mqtt_cmd"
+      ],
+      [
+        "sim_mqtt_result"
+      ]
+    ],
+    "func": "const p = msg.payload;\nconst negar = motivo => [null, {topic: 'sim/decision_retencion', payload: {activar: false, motivo, solicitud_id: p && p.solicitud_id || null, run_id: p && p.run_id || 'desconocido', ts: new Date().toISOString(), sintetico: true}}];\nif (!p || typeof p !== 'object' || Array.isArray(p)) return negar('solicitud inválida');\nif (p.sintetico !== true) return negar('esta entrada solo admite pruebas controladas');\nif (!/^\\d{5}$/.test(String(p.veh || ''))) return negar('vehículo inválido');\nif (typeof p.esperar_s !== 'number' || !Number.isFinite(p.esperar_s) || p.esperar_s <= 0 || p.esperar_s > 600) return negar('retención inválida');\nif (typeof p.retraso_tren_s !== 'number' || !Number.isFinite(p.retraso_tren_s) || p.retraso_tren_s <= 240) return negar('el tren no supera cuatro minutos de retraso');\nif (!p.run_id || !/^99\\d{2}$/.test(String(p.oper || ''))) return negar('ensayo u operador simulado inválido');\nconst kpi = flow.get('sim_kpi_' + p.run_id);\nif (!kpi || kpi.oper_sim !== p.oper || !Number.isFinite(kpi.irregularidad)) return negar('KPI ausente');\nconst edad = (Date.now() - Date.parse(kpi.ts)) / 1000;\nif (!Number.isFinite(edad) || edad < -5 || edad > 60) return negar('KPI caducado');\nif (kpi.irregularidad > 0.3) return negar('irregularidad superior a 0,3');\nconst used = flow.get('sim_solicitudes') || {};\nif (!p.solicitud_id || used[p.solicitud_id]) return negar('solicitud sin identificador o repetida');\nfor (const [id, ts] of Object.entries(used)) if (Date.now() - ts > 3600000) delete used[id];\nused[p.solicitud_id] = Date.now(); flow.set('sim_solicitudes', used);\nconst payload = {run_id: p.run_id, esperar_s: p.esperar_s, solicitud_id: p.solicitud_id, sintetico: true};\nreturn [{topic: 'decision/retener/sim/' + p.oper + '/' + p.veh, payload, qos: 1, retain: false}, {topic: 'sim/decision_retencion', payload: {activar: true, motivo: 'tren retrasado y regularidad admisible', irregularidad: kpi.irregularidad, ...payload, ts: new Date().toISOString()}}];\n",
+    "outputs": 2,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": []
+  },
+  {
+    "id": "sim_mqtt_cmd",
+    "z": "sim_tab",
+    "type": "mqtt out",
+    "name": "Decisión simulada",
+    "x": 760,
+    "y": 450,
+    "wires": [],
+    "topic": "",
+    "qos": "",
+    "retain": "",
+    "respTopic": "",
+    "contentType": "",
+    "userProps": "",
+    "correl": "",
+    "expiry": "",
+    "broker": "cfg_local"
+  },
+  {
+    "id": "sim_mqtt_result",
+    "z": "sim_tab",
+    "type": "mqtt out",
+    "name": "Motivo de decisión",
+    "x": 760,
+    "y": 510,
+    "wires": [],
+    "topic": "",
+    "qos": "",
+    "retain": "",
+    "respTopic": "",
+    "contentType": "",
+    "userProps": "",
+    "correl": "",
+    "expiry": "",
+    "broker": "cfg_local"
+  },
+  {
+    "id": "sim_route_inject",
+    "z": "sim_tab",
+    "type": "inject",
+    "name": "Trazado GPS observado",
+    "x": 190,
+    "y": 590,
+    "wires": [
+      [
+        "sim_route"
+      ]
+    ],
+    "props": [
+      {
+        "p": "payload"
+      }
+    ],
+    "repeat": "30",
+    "crontab": "",
+    "once": true,
+    "onceDelay": 3,
+    "topic": "",
+    "payload": "",
+    "payloadType": "date"
+  },
+  {
+    "id": "sim_route",
+    "z": "sim_tab",
+    "type": "function",
+    "name": "Ruta real de dos sentidos",
+    "x": 470,
+    "y": 590,
+    "wires": [
+      [
+        "sim_link_out"
+      ]
+    ],
+    "func": "return {payload:{name:\"ruta_linea_4\", layer:\"ruta real\", line:[[60.167621, 24.975525], [60.167815, 24.975849], [60.168022, 24.975637], [60.167982, 24.975052], [60.167781, 24.974816], [60.167556, 24.974835], [60.167409, 24.974474], [60.167308, 24.974069], [60.167203, 24.97362], [60.167083, 24.973149], [60.166953, 24.972651], [60.166824, 24.972167], [60.166703, 24.971718], [60.166573, 24.971233], [60.166467, 24.970828], [60.166335, 24.970356], [60.166203, 24.969985], [60.166125, 24.969478], [60.166165, 24.969002], [60.166216, 24.968524], [60.166258, 24.968045], [60.16628, 24.967592], [60.166271, 24.967078], [60.166261, 24.966605], [60.166361, 24.966131], [60.166499, 24.96575], [60.166639, 24.96535], [60.166791, 24.964911], [60.166929, 24.964495], [60.167057, 24.96411], [60.167188, 24.963723], [60.167333, 24.963287], [60.16746, 24.962908], [60.1676, 24.962492], [60.167685, 24.962058], [60.167491, 24.961755], [60.167299, 24.961458], [60.167404, 24.960993], [60.16755, 24.960576], [60.167697, 24.960096], [60.167833, 24.959608], [60.167998, 24.959114], [60.168127, 24.958726], [60.168282, 24.958258], [60.168436, 24.957797], [60.168575, 24.957317], [60.16873, 24.956966], [60.168965, 24.956943], [60.169191, 24.956803], [60.169206, 24.956339], [60.169181, 24.955863], [60.169168, 24.955406], [60.169156, 24.954915], [60.169144, 24.954443], [60.169131, 24.953985], [60.169118, 24.953518], [60.169106, 24.952981], [60.169094, 24.952493], [60.169079, 24.951943], [60.169067, 24.951488], [60.169055, 24.951032], [60.169043, 24.950497], [60.16903, 24.950023], [60.169017, 24.949571], [60.169015, 24.949051], [60.169011, 24.948499], [60.169001, 24.947954], [60.168993, 24.947438], [60.168979, 24.946942], [60.168965, 24.946464], [60.16895, 24.945982], [60.168935, 24.945492], [60.168919, 24.944932], [60.1689, 24.944446], [60.168886, 24.943975], [60.168876, 24.943468], [60.168863, 24.942975], [60.16885, 24.942518], [60.168838, 24.942063], [60.168786, 24.941558], [60.168638, 24.941175], [60.168546, 24.940752], [60.168702, 24.940362], [60.168898, 24.940093], [60.169106, 24.939797], [60.169302, 24.939495], [60.169473, 24.939194], [60.16966, 24.93892], [60.169861, 24.938621], [60.170052, 24.93833], [60.170264, 24.938002], [60.170448, 24.937721], [60.170651, 24.937401], [60.17086, 24.937084], [60.171051, 24.936745], [60.171196, 24.936348], [60.171348, 24.935995], [60.17155, 24.935775], [60.171758, 24.935579], [60.172015, 24.935333], [60.172226, 24.935128], [60.172489, 24.93487], [60.172742, 24.934623], [60.172995, 24.934376], [60.17325, 24.934126], [60.173505, 24.933877], [60.173766, 24.933671], [60.174044, 24.933456], [60.174316, 24.933215], [60.174566, 24.93297], [60.174785, 24.932742], [60.175028, 24.932491], [60.175247, 24.932264], [60.175507, 24.932], [60.175713, 24.931782], [60.175935, 24.931529], [60.176162, 24.931254], [60.17639, 24.930975], [60.176615, 24.9307], [60.176836, 24.930435], [60.177062, 24.930193], [60.177284, 24.929971], [60.177538, 24.929715], [60.177778, 24.929518], [60.178014, 24.929399], [60.178237, 24.929287], [60.178467, 24.929168], [60.178713, 24.929047], [60.178947, 24.928953], [60.17921, 24.928824], [60.17947, 24.928689], [60.179724, 24.928558], [60.179976, 24.928428], [60.180229, 24.928299], [60.180483, 24.928169], [60.180735, 24.928022], [60.180972, 24.927882], [60.18122, 24.927737], [60.181474, 24.927587], [60.181716, 24.927445], [60.181941, 24.927167], [60.182133, 24.926868], [60.182335, 24.926562], [60.182519, 24.926264], [60.18271, 24.925934], [60.182907, 24.925634], [60.183108, 24.92533], [60.183314, 24.92502], [60.183499, 24.924738], [60.183705, 24.924421], [60.183924, 24.924084], [60.184115, 24.923794], [60.184311, 24.923492], [60.184505, 24.923194], [60.184697, 24.922902], [60.184888, 24.92261], [60.185082, 24.922315], [60.185269, 24.922033], [60.185474, 24.921731], [60.185668, 24.92147], [60.185863, 24.921214], [60.186111, 24.92089], [60.18633, 24.920597], [60.186546, 24.920304], [60.186753, 24.920023], [60.186949, 24.919765], [60.1872, 24.919489], [60.187434, 24.919249], [60.187649, 24.919028], [60.187851, 24.91882], [60.188076, 24.918588], [60.18832, 24.918298], [60.188532, 24.918067], [60.188739, 24.917843], [60.188938, 24.917631], [60.189135, 24.917374], [60.189318, 24.917088], [60.189499, 24.916799], [60.189686, 24.916506], [60.189855, 24.916202], [60.190025, 24.915832], [60.190199, 24.915439], [60.190362, 24.915063], [60.190525, 24.914638], [60.190713, 24.914212], [60.190892, 24.913815], [60.191042, 24.913471], [60.19116, 24.913083], [60.191165, 24.912602], [60.191172, 24.912059], [60.19118, 24.911547], [60.191189, 24.911027], [60.191193, 24.910477], [60.191202, 24.909905], [60.191211, 24.909439], [60.191222, 24.908847], [60.191233, 24.9083], [60.191243, 24.907839], [60.191254, 24.907304], [60.191266, 24.906788], [60.191283, 24.906229], [60.191294, 24.905681], [60.1913, 24.905189], [60.191307, 24.904625], [60.191316, 24.904138], [60.191327, 24.903609], [60.191338, 24.903029], [60.19135, 24.902446], [60.191362, 24.901889], [60.191373, 24.901335], [60.191383, 24.900837], [60.1914, 24.900312], [60.191477, 24.899787], [60.191592, 24.899384], [60.191737, 24.898992], [60.191884, 24.898592], [60.19205, 24.898131], [60.192187, 24.89775], [60.192352, 24.897289], [60.192501, 24.896873], [60.192635, 24.896479], [60.192757, 24.896096], [60.192911, 24.895682], [60.193049, 24.895321], [60.193197, 24.894925], [60.193337, 24.894558], [60.193485, 24.894185], [60.193646, 24.893774], [60.193812, 24.893373], [60.193986, 24.892981], [60.194167, 24.892598], [60.194338, 24.892239], [60.194522, 24.891847], [60.194679, 24.891506], [60.194857, 24.891132], [60.195057, 24.890707], [60.195203, 24.890363], [60.195343, 24.889979], [60.195466, 24.889582], [60.195573, 24.889177], [60.195666, 24.888764], [60.195791, 24.888142], [60.195915, 24.887524], [60.196041, 24.886905], [60.196155, 24.886344], [60.196246, 24.885898], [60.196345, 24.885413], [60.196448, 24.884912], [60.19655, 24.88441], [60.196636, 24.883981], [60.19673, 24.883521], [60.196819, 24.883075], [60.196908, 24.882625], [60.197008, 24.88213], [60.197114, 24.881604], [60.19722, 24.881081], [60.197325, 24.880564], [60.197423, 24.88007], [60.197522, 24.879585], [60.19762, 24.879102], [60.19772, 24.878616], [60.19782, 24.878132], [60.197917, 24.877659], [60.198009, 24.877203], [60.198091, 24.876779], [60.198125, 24.876285], [60.198016, 24.875797], [60.197793, 24.875487], [60.19759, 24.875266], [60.197374, 24.875022], [60.19715, 24.874766], [60.196928, 24.874513], [60.19671, 24.874265], [60.196498, 24.874024], [60.196292, 24.873788], [60.196092, 24.87356], [60.195894, 24.873334], [60.19569, 24.873024], [60.195546, 24.872653], [60.195404, 24.8723], [60.195258, 24.871934], [60.195104, 24.871548], [60.194931, 24.871225], [60.194683, 24.871352], [60.194595, 24.871807], [60.194524, 24.872322], [60.194481, 24.872641], [60.194411, 24.873129], [60.194382, 24.873595], [60.194593, 24.873798], [60.194824, 24.873652], [60.195064, 24.87356], [60.195301, 24.873474], [60.195562, 24.873383], [60.195823, 24.873328], [60.196064, 24.873574], [60.196311, 24.873862], [60.196561, 24.87415], [60.196803, 24.874428], [60.197035, 24.874693], [60.197261, 24.874951], [60.197483, 24.875204], [60.197679, 24.875428], [60.197892, 24.875672], [60.198066, 24.876083], [60.198088, 24.876563], [60.198004, 24.876998], [60.197902, 24.87747], [60.19781, 24.87792], [60.197719, 24.878378], [60.197623, 24.878846], [60.197521, 24.879344], [60.197418, 24.879869], [60.197315, 24.88038], [60.197215, 24.880886], [60.19711, 24.881395], [60.197005, 24.881918], [60.1969, 24.882448], [60.196801, 24.882947], [60.196711, 24.883406], [60.196616, 24.883894], [60.196531, 24.884321], [60.196431, 24.884817], [60.196323, 24.885355], [60.196202, 24.885951], [60.196083, 24.88654], [60.195973, 24.887081], [60.195867, 24.887604], [60.195764, 24.888113], [60.195663, 24.888611], [60.195558, 24.889098], [60.195435, 24.889563], [60.195297, 24.890001], [60.19515, 24.890399], [60.194995, 24.890753], [60.194832, 24.891094], [60.194667, 24.891442], [60.194498, 24.891797], [60.194328, 24.892159], [60.194157, 24.89252], [60.193989, 24.892874], [60.19383, 24.893226], [60.193681, 24.893577], [60.193497, 24.894043], [60.193339, 24.894451], [60.193201, 24.89481], [60.193053, 24.895184], [60.192898, 24.895584], [60.192743, 24.895992], [60.192616, 24.896373], [60.192491, 24.896755], [60.192334, 24.897191], [60.192156, 24.897686], [60.191974, 24.898192], [60.191811, 24.898644], [60.191668, 24.899041], [60.191501, 24.899517], [60.191393, 24.900002], [60.191349, 24.900561], [60.191342, 24.901034], [60.191335, 24.901506], [60.191326, 24.902062], [60.191316, 24.902627], [60.191304, 24.903224], [60.191295, 24.903683], [60.191286, 24.904152], [60.191277, 24.904623], [60.191268, 24.905153], [60.191259, 24.905609], [60.191251, 24.906073], [60.191238, 24.906529], [60.191222, 24.907009], [60.191212, 24.907564], [60.191203, 24.908038], [60.191192, 24.908591], [60.191181, 24.909136], [60.191171, 24.909683], [60.191159, 24.910232], [60.191154, 24.910694], [60.191146, 24.911225], [60.191135, 24.911722], [60.191122, 24.912257], [60.191111, 24.912765], [60.191088, 24.91322], [60.190952, 24.913595], [60.190774, 24.913977], [60.190612, 24.914336], [60.190442, 24.914738], [60.190306, 24.915108], [60.190149, 24.91547], [60.189997, 24.915809], [60.189832, 24.916166], [60.189636, 24.916514], [60.189421, 24.916851], [60.189226, 24.917151], [60.189043, 24.917427], [60.188814, 24.917707], [60.188565, 24.917972], [60.188352, 24.918199], [60.188155, 24.918429], [60.187921, 24.918691], [60.187688, 24.918931], [60.187479, 24.91915], [60.187264, 24.919375], [60.187012, 24.919641], [60.186808, 24.919888], [60.186603, 24.920161], [60.186393, 24.920446], [60.18618, 24.920734], [60.185984, 24.921], [60.18576, 24.921297], [60.185543, 24.921588], [60.185328, 24.921872], [60.185137, 24.922153], [60.184938, 24.922454], [60.18475, 24.922739], [60.184566, 24.923018], [60.184354, 24.923341], [60.184137, 24.923673], [60.183914, 24.924008], [60.183691, 24.924345], [60.183475, 24.924676], [60.183292, 24.924956], [60.183077, 24.925286], [60.182864, 24.925615], [60.182665, 24.925922], [60.182488, 24.926229], [60.182278, 24.926574], [60.182094, 24.92685], [60.181914, 24.927121], [60.181688, 24.927388], [60.181428, 24.927541], [60.181192, 24.927683], [60.180933, 24.92784], [60.180683, 24.92799], [60.180445, 24.928128], [60.180213, 24.928249], [60.179987, 24.928368], [60.179766, 24.928483], [60.17948, 24.928632], [60.179199, 24.928778], [60.178914, 24.928917], [60.178641, 24.929024], [60.178389, 24.929153], [60.17815, 24.929278], [60.177897, 24.929415], [60.177635, 24.929576], [60.177423, 24.929787], [60.17719, 24.930022], [60.176967, 24.930245], [60.176762, 24.930471], [60.17651, 24.93078], [60.176259, 24.931086], [60.176008, 24.931391], [60.175762, 24.931677], [60.17553, 24.931926], [60.175305, 24.932158], [60.175064, 24.932408], [60.174847, 24.932632], [60.174598, 24.932887], [60.174376, 24.933111], [60.174129, 24.933331], [60.173902, 24.933528], [60.173636, 24.933717], [60.173428, 24.933899], [60.173181, 24.93414], [60.172941, 24.934373], [60.172711, 24.934595], [60.172499, 24.934801], [60.172278, 24.935018], [60.17206, 24.935227], [60.171838, 24.935437], [60.171585, 24.935679], [60.17135, 24.935906], [60.171166, 24.936226], [60.171009, 24.936653], [60.170857, 24.93702], [60.170659, 24.937315], [60.170451, 24.937621], [60.170263, 24.937901], [60.17008, 24.938174], [60.169877, 24.938475], [60.169695, 24.938745], [60.169487, 24.939053], [60.169294, 24.93935], [60.169117, 24.939678], [60.168936, 24.939949], [60.168752, 24.940232], [60.168577, 24.940517], [60.16851, 24.940954], [60.16865, 24.941343], [60.168792, 24.941702], [60.168835, 24.94217], [60.168843, 24.942633], [60.168842, 24.943211], [60.168852, 24.943746], [60.168862, 24.944274], [60.168875, 24.944785], [60.168892, 24.945305], [60.168911, 24.945813], [60.168927, 24.946338], [60.16894, 24.946792], [60.168948, 24.947345], [60.168957, 24.947814], [60.168969, 24.948309], [60.168984, 24.948856], [60.168999, 24.949329], [60.169015, 24.949877], [60.169029, 24.950372], [60.169046, 24.9509], [60.16906, 24.951366], [60.169071, 24.951854], [60.169082, 24.952408], [60.169093, 24.952912], [60.169103, 24.953397], [60.169113, 24.953857], [60.169125, 24.954348], [60.169135, 24.954843], [60.169145, 24.955315], [60.169157, 24.955779], [60.169168, 24.95627], [60.16917, 24.956733], [60.168961, 24.956935], [60.168728, 24.956945], [60.168549, 24.957241], [60.168431, 24.957682], [60.168279, 24.958149], [60.168143, 24.958558], [60.168018, 24.958936], [60.16789, 24.959325], [60.167765, 24.959703], [60.167637, 24.960172], [60.167505, 24.960594], [60.167376, 24.96098], [60.167243, 24.961412], [60.167361, 24.961849], [60.167571, 24.962112], [60.167536, 24.962624], [60.167392, 24.963023], [60.167252, 24.963412], [60.167113, 24.963815], [60.166959, 24.964206], [60.166814, 24.964593], [60.166679, 24.964989], [60.166546, 24.965408], [60.166403, 24.965839], [60.166271, 24.966244], [60.166184, 24.966711], [60.166212, 24.967217], [60.166224, 24.967683], [60.166199, 24.968203], [60.166155, 24.968698], [60.166114, 24.96917], [60.166096, 24.969694], [60.166213, 24.970153], [60.166352, 24.970539], [60.166486, 24.971022], [60.166604, 24.971471], [60.166714, 24.971891], [60.166829, 24.972312], [60.166939, 24.972708], [60.167071, 24.973201], [60.167177, 24.973612], [60.167293, 24.974069], [60.16741, 24.974533], [60.167513, 24.975022], [60.167617, 24.975447], [60.167621, 24.975525]], color:\"#2676c9\", weight:3, opacity:0.65}};",
+    "outputs": 1,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": []
   }
 ]

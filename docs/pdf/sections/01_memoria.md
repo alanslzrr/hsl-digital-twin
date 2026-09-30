@@ -384,7 +384,7 @@ El seguimiento muestra lo que ocurre en HSL. La simulación añade un entorno do
 
 Los topics `sim/` y el tag `src=sim` distinguen estas posiciones de las observaciones. Las consultas de retraso real, la regla de invierno y el ETA excluyen las posiciones simuladas. Cada ensayo conserva un `run_id`; los comandos de un ensayo no afectan a otro. La actuación solo llega a operadores simulados `99xx`.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\linewidth]{../figures/simulacion.pdf}
 \caption{Recorrido de observación, simulación y retención}
@@ -394,7 +394,7 @@ Los topics `sim/` y el tag `src=sim` distinguen estas posiciones de las observac
 
 Aquí incorporamos la flota simulada al mapa que ya muestra los tranvías reales. Los marcadores naranjas recorren la ruta y los reales siguen recibiendo HSL. El KPI se publica cada treinta segundos simulados y conserva tanto la fecha real de emisión como el tiempo virtual.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\linewidth]{../figures/mapa-dos-capas.jpg}
 \caption{Flota observada y simulada en capas distintas de Worldmap}
@@ -417,7 +417,7 @@ El ensayo MQTT utiliza la ruta sintética, una semilla fija y factor temporal di
 
 El signo del retraso sigue HSL, negativo significa llegar tarde. Los valores de esta tabla se comparan con el horario nominal interno del simulador, no con el horario comercial ni con el retraso publicado por HSL. El tiempo nominal combina marcha y paradas y aplica un factor 1,3 al tiempo de recorrido a velocidad de crucero; ese coeficiente pertenece al modelo y no se estimó con los datos GPS. La nieve añade ocho segundos por parada y reduce la velocidad al setenta por ciento. Su retirada mejora parte del retraso, pero no devuelve automáticamente la regularidad inicial. El corte concentra la flota y la recuperación nominal no deshace el agrupamiento durante los treinta minutos simulados observados. Es persistencia dentro de este horizonte, no una demostración de irreversibilidad para cualquier duración. El refuerzo de dos vehículos reduce el CV al final de la fase, aunque continúa lejos del nominal.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\linewidth]{../figures/grafana-sim-escenarios-completos.jpg}
 \caption{Paneles de irregularidad y retraso con los cambios de escenario anotados}
@@ -431,7 +431,7 @@ Para acercar el modelo a una operación real faltan demanda por parada y hora, c
 
 La geometría procede de dos viajes completos consecutivos del vehículo `0040/00435`, uno por sentido, observados el 29 de septiembre entre las 15.03.29 y las 16.26.01 UTC. Se conservaron posiciones GPS en orden temporal y se redujeron los puntos próximos a menos de veinticinco metros. Los enlaces entre terminales miden 18,3 y 4,3 metros, evitando cerrar un recorrido parcial mediante una diagonal ficticia. La polilínea reconstruida tiene 15 933 metros y mantiene los rangos de ambos sentidos para la proyección.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\linewidth]{../figures/mapa-ruta-real.jpg}
 \caption{Ruta reconstruida y posiciones reales y simuladas superpuestas}
@@ -445,7 +445,7 @@ La geometría procede de dos viajes completos consecutivos del vehículo `0040/0
 
 La escala de 22,3 segundos se pasa al generador lognormal; con dispersión 0,35 su esperanza es aproximadamente 23,7 segundos, no exactamente 22,3. La distribución real contiene 4 912 segundos observados y la simulada 19 648 muestras de cuatro vehículos. El histograma normaliza cada conjunto por separado para evitar comparar conteos de tamaños distintos.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\linewidth]{../figures/sim-velocidades.pdf}
 \caption{Distribuciones de velocidad real y simulada, en porcentajes}
@@ -459,7 +459,7 @@ Cada minuto se proyecta una posición real reciente sobre el sentido correspondi
 
 La selección de ganancia compara 0,1, 0,3, 0,5, 0,7 y 1 sobre un registro real archivado. Los primeros quince minutos seleccionan por RMSE y los quince siguientes se reservan para evaluación. Se eligió uno. La varianza también favorece la ganancia elegida en la mitad de selección, 8 146,52 m² frente a 27 583,56 m² con ganancia 0,3. Esta comprobación coincide con el criterio de RMSE y no utiliza la mitad reservada para elegir. En la parte reservada el RMSE fue 106,02 metros frente a 201,21 con ganancia 0,3, y el MAE 85,14 frente a 151,28 metros. Esta comparación es una reproducción cronológica del registro, distinta de la observación en vivo posterior.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\linewidth]{../figures/grafana-sim-residuos.jpg}
 \par\medskip
@@ -484,7 +484,7 @@ Para asimilar se exigen posición y estado de menos de quince segundos, diferenc
 
 La [regla de retención](https://github.com/alanslzrr/hsl-digital-twin/blob/main/flows/simulacion/retener.js) recibe un disparo de tren explícitamente sintético. Se probó un retraso de trescientos segundos, superior al umbral estricto de cuatro minutos. Antes de autorizar revisa el KPI del mismo ensayo, su antigüedad y que el CV no supere 0,3. La orden reserva una espera adicional para la próxima parada del vehículo simulado. No comunica órdenes a HSL ni garantiza una conexión real.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\linewidth]{../figures/node-red-simulacion.jpg}
 \caption{Flujo de almacenamiento, mapa y protección de la retención en Node-RED}
@@ -509,7 +509,7 @@ Retención, s & CV máximo & Recuperación según el criterio \\
 \end{tabular}
 \end{table}
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\linewidth]{../figures/sim-retenciones.pdf}
 \caption{Ensayos pareados de retención y control sin intervención}

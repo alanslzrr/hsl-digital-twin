@@ -1,0 +1,71 @@
+% Adaptación de la plantilla create-pdf para la memoria de la práctica 2.
+\usepackage[a4paper,left=2.25cm,right=2.25cm,top=2.7cm,bottom=2.5cm]{geometry}
+\usepackage{setspace}
+\setstretch{1.13}
+\usepackage{graphicx,booktabs,array,tabularx,float,caption}
+\usepackage{fancyhdr,titlesec,lastpage,needspace,etoolbox,xurl}
+\usepackage{fvextra}
+\usepackage{newunicodechar}
+\newunicodechar{−}{\ensuremath{-}}
+\newunicodechar{≤}{\ensuremath{\leq}}
+\newunicodechar{≥}{\ensuremath{\geq}}
+\newunicodechar{→}{\ensuremath{\rightarrow}}
+\newunicodechar{×}{\ensuremath{\times}}
+\newunicodechar{⁹}{\ensuremath{^9}}
+\definecolor{uieblue}{HTML}{315F9B}
+\definecolor{inkgray}{HTML}{555E6A}
+\titleformat{\section}{\Large\bfseries\color{uieblue}}{\thesection.}{0.55em}{}
+\titleformat{\subsection}{\large\bfseries}{\thesubsection.}{0.55em}{}
+\titlespacing*{\section}{0pt}{20pt}{9pt}
+\titlespacing*{\subsection}{0pt}{14pt}{6pt}
+\pretocmd{\section}{\Needspace{8\baselineskip}}{}{}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\setlength{\headheight}{30pt}
+\setlength{\headsep}{14pt}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\includegraphics[height=0.8cm]{assets/logo_uie_mark.png}}
+\fancyhead[R]{\small\textcolor{inkgray}{Gemelos Digitales\enspace |\enspace Práctica 2}}
+\fancyfoot[L]{\footnotesize\textcolor{inkgray}{Alan Salazar · UIE}}
+\fancyfoot[C]{\footnotesize\textcolor{inkgray}{30 de septiembre de 2026}}
+\fancyfoot[R]{\footnotesize\thepage\ /\ \pageref*{LastPage}}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.3pt}
+\fancypagestyle{plain}{\pagestyle{fancy}}
+\captionsetup{font=small,labelfont=bf,labelsep=period,justification=raggedright,singlelinecheck=false,skip=7pt}
+\addto\captionsspanish{\renewcommand{\figurename}{Figura}\renewcommand{\tablename}{Tabla}\renewcommand{\contentsname}{Índice}}
+\AtBeginEnvironment{longtable}{\small\setstretch{1.04}}
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.15}
+\fvset{breaklines=true,breakanywhere=true,fontsize=\footnotesize}
+\RecustomVerbatimEnvironment{verbatim}{Verbatim}{breaklines=true,breakanywhere=true,fontsize=\footnotesize}
+\setcounter{tocdepth}{1}
+\setlength{\emergencystretch}{3em}
+\clubpenalty=10000
+\widowpenalty=10000
+\AtBeginDocument{
+\hypersetup{pdftitle={Práctica 2: Flota de Helsinki por MQTT},pdfauthor={Alan Salazar},pdfsubject={Memoria técnica de Gemelos Digitales · UIE}}
+\thispagestyle{fancy}
+\vspace*{0.8cm}
+\begin{center}
+\includegraphics[width=0.88\linewidth]{assets/logo_uie.png}\\[1.2cm]
+{\large Grado en Ingeniería en Sistemas Inteligentes}\\[0.25cm]
+{\normalsize Cuarto curso · Primer semestre}\\[0.6cm]
+{\Large\color{uieblue} Gemelos Digitales}\\[1.0cm]
+{\Huge\bfseries\color{uieblue} Flota de Helsinki\\[0.15cm] por MQTT}\\[0.45cm]
+{\Large Práctica 2 · Memoria técnica}\\[0.8cm]
+\rule{0.85\linewidth}{0.5pt}\\[0.45cm]
+\begin{minipage}{0.86\linewidth}
+\textbf{Objetivo de la entrega}\\[0.2cm]
+Explicar la implementación de un sistema que recibe datos de tranvías, valida y almacena sus medidas y muestra su estado. La memoria desarrolla también la decisión del plan de invierno y la evaluación de la predicción de llegada.
+\end{minipage}\\[0.45cm]
+\rule{0.85\linewidth}{0.5pt}\\[0.7cm]
+{\large Alan Salazar}\\[0.25cm]
+{\normalsize Universidad Intercontinental de la Empresa}\\[0.25cm]
+{\normalsize 30 de septiembre de 2026}
+\end{center}
+\clearpage
+\tableofcontents
+\clearpage
+}

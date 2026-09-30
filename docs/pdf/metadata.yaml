@@ -1,0 +1,13 @@
+---
+lang: es
+documentclass: article
+classoption: [11pt, a4paper]
+numbersections: true
+toc: false
+colorlinks: true
+linkcolor: uieblue
+urlcolor: uieblue
+citecolor: uieblue
+pdfauthor: Alan Salazar
+pdftitle: "Práctica 2: Flota de Helsinki por MQTT"
+---

@@ -1,0 +1,24 @@
+# Configuración privada
+.env
+.env.*
+!.env.example
+*_cred.json
+# Datos y artefactos de ejecución
+artifacts/
+*.pkl
+*.pickle
+*.raw
+*.log
+*.pid
+*.db
+*.sqlite*
+*.parquet
+*.jsonl
+# Entornos y compilación
+.venv/
+__pycache__/
+*.pyc
+node_modules/
+_build/
+tmp/
+.DS_Store

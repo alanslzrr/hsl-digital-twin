@@ -1,0 +1,297 @@
+{
+  "id": null,
+  "uid": "flota-simulacion",
+  "title": "Flota HSL · Simulación",
+  "tags": [
+    "HSL",
+    "simulación"
+  ],
+  "timezone": "Europe/Madrid",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": true,
+  "refresh": "10s",
+  "time": {
+    "from": "2026-09-30T14:14:00Z",
+    "to": "2026-09-30T14:46:00Z"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Escenarios · irregularidad a ×10",
+      "type": "timeseries",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influx-flota"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 9
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "query": "from(bucket: \"flota\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"kpi_sim\" and r._field == \"irregularidad\" and r.run_id == \"escenarios-20260930\" and r._time >= time(v: \"2026-09-30T14:14:19.278Z\")) |> group(columns:[\"_field\",\"run_id\",\"src\"]) |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influx-flota"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never"
+          },
+          "displayName": "CV"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 2,
+      "title": "Escenarios · retraso medio simulado",
+      "type": "timeseries",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influx-flota"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 12,
+        "h": 9
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "query": "from(bucket: \"flota\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"kpi_sim\" and r._field == \"retraso_medio_s\" and r.run_id == \"escenarios-20260930\" and r._time >= time(v: \"2026-09-30T14:14:19.278Z\")) |> group(columns:[\"_field\",\"run_id\",\"src\"]) |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influx-flota"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never"
+          },
+          "displayName": "Retraso medio"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 3,
+      "title": "Sincronización real · residuo antes de corregir",
+      "type": "timeseries",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influx-flota"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 9,
+        "w": 24,
+        "h": 11
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "query": "from(bucket: \"flota\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"residuo_sim\" and r._field == \"residuo_m\" and r.run_id == \"sync-validado-20260930\" and r.fase == \"prediccion\") |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influx-flota"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "lengthm",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never"
+          },
+          "displayName": "${__field.labels.veh_real}"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 4,
+      "title": "Velocidades · histórico real y modelo calibrado",
+      "type": "barchart",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influx-flota"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 20,
+        "w": 14,
+        "h": 10
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "query": "from(bucket:\"flota\") |> range(start: -24h) |> filter(fn:(r)=>r._measurement == \"histograma_sim\" and r._field == \"porcentaje\") |> group(columns:[\"intervalo\",\"origen\"]) |> last() |> group(columns:[]) |> pivot(rowKey:[\"intervalo\"],columnKey:[\"origen\"],valueColumn:\"_value\") |> keep(columns:[\"intervalo\",\"real\",\"sim\"]) |> sort(columns:[\"intervalo\"])",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influx-flota"
+          },
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "vertical",
+        "xField": "intervalo",
+        "stacking": "none",
+        "showValue": "never",
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        },
+        "xTickLabelRotation": -45
+      }
+    },
+    {
+      "id": 5,
+      "title": "Bucle cerrado · prueba controlada del tren",
+      "type": "table",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influx-flota"
+      },
+      "gridPos": {
+        "x": 14,
+        "y": 20,
+        "w": 10,
+        "h": 10
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "query": "from(bucket:\"flota\") |> range(start:v.timeRangeStart,stop:v.timeRangeStop) |> filter(fn:(r)=>r._measurement == \"evento_sim\" and r._field == \"detalle\" and r.run_id == \"bucle-20260930\") |> group(columns:[]) |> keep(columns:[\"_time\",\"tipo\",\"_value\"]) |> sort(columns:[\"_time\"]) |> rename(columns:{_value:\"Decisión y motivo\"})",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influx-flota"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    }
+  ],
+  "annotations": {
+    "list": [
+      {
+        "name": "Cambios de escenario",
+        "filter": {
+          "exclude": false,
+          "ids": [
+            1,
+            2
+          ]
+        },
+        "enable": true,
+        "hide": false,
+        "iconColor": "#ff9f40",
+        "datasource": {
+          "type": "influxdb",
+          "uid": "influx-flota"
+        },
+        "target": {
+          "refId": "Anno",
+          "query": "from(bucket:\"flota\") |> range(start:v.timeRangeStart,stop:v.timeRangeStop) |> filter(fn:(r)=>r._measurement == \"evento_sim\" and r._field == \"detalle\" and r.run_id == \"escenarios-20260930\" and r._time >= time(v: \"2026-09-30T14:14:19.278Z\") and r.tipo == \"comando\") |> rename(columns:{_value:\"text\",tipo:\"tags\"}) |> keep(columns:[\"_time\",\"text\",\"tags\"])"
+        }
+      }
+    ]
+  },
+  "templating": {
+    "list": []
+  }
+}

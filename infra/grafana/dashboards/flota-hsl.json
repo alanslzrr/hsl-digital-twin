@@ -32,7 +32,7 @@
             "type": "influxdb",
             "uid": "influx-flota"
           },
-          "query": "from(bucket: \"flota\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"vehiculo\" and r._field == \"retraso_s\" and not exists r.evento)\n  |> group(columns: [\"linea\"])\n  |> aggregateWindow(every: 1m, fn: mean, createEmpty: false)",
+          "query": "from(bucket: \"flota\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"vehiculo\" and (not exists r.src or r.src != \"sim\") and r._field == \"retraso_s\" and not exists r.evento)\n  |> group(columns: [\"linea\"])\n  |> aggregateWindow(every: 1m, fn: mean, createEmpty: false)",
           "refId": "A"
         }
       ],
@@ -65,7 +65,7 @@
             "type": "influxdb",
             "uid": "influx-flota"
           },
-          "query": "from(bucket: \"flota\")\n  |> range(start: -5m)\n  |> filter(fn: (r) => r._measurement == \"vehiculo\" and r._field == \"retraso_s\" and not exists r.evento)\n  |> group(columns: [\"veh\", \"linea\"])\n  |> last()\n  |> group()\n  |> sort(columns: [\"_value\"])\n  |> limit(n: 5)\n  |> keep(columns: [\"linea\", \"veh\", \"_value\"])",
+          "query": "from(bucket: \"flota\")\n  |> range(start: -5m)\n  |> filter(fn: (r) => r._measurement == \"vehiculo\" and (not exists r.src or r.src != \"sim\") and r._field == \"retraso_s\" and not exists r.evento)\n  |> group(columns: [\"veh\", \"linea\"])\n  |> last()\n  |> group()\n  |> sort(columns: [\"_value\"])\n  |> limit(n: 5)\n  |> keep(columns: [\"linea\", \"veh\", \"_value\"])",
           "refId": "A"
         }
       ],
@@ -97,7 +97,7 @@
             "type": "influxdb",
             "uid": "influx-flota"
           },
-          "query": "from(bucket: \"flota\")\n  |> range(start: -2m)\n  |> filter(fn: (r) => r._measurement == \"vehiculo\" and r._field == \"spd\")\n  |> group(columns: [\"veh\"]) |> last() |> group() |> count()",
+          "query": "from(bucket: \"flota\")\n  |> range(start: -2m)\n  |> filter(fn: (r) => r._measurement == \"vehiculo\" and (not exists r.src or r.src != \"sim\") and r._field == \"spd\")\n  |> group(columns: [\"veh\"]) |> last() |> group() |> count()",
           "refId": "A"
         }
       ],
@@ -197,7 +197,7 @@
             "type": "influxdb",
             "uid": "influx-flota"
           },
-          "query": "from(bucket: \"flota\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"vehiculo\" and r._field == \"retraso_s\" and not exists r.evento)\n  |> group()\n  |> aggregateWindow(every: 1m, fn: mean, createEmpty: false)",
+          "query": "from(bucket: \"flota\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"vehiculo\" and (not exists r.src or r.src != \"sim\") and r._field == \"retraso_s\" and not exists r.evento)\n  |> group()\n  |> aggregateWindow(every: 1m, fn: mean, createEmpty: false)",
           "refId": "A"
         },
         {
@@ -584,5 +584,5 @@
   "timezone": "browser",
   "title": "Flota HSL",
   "uid": "flota-hsl",
-  "version": 16
+  "version": 17
 }

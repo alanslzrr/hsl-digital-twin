@@ -1,0 +1,101 @@
+{
+  "velocidad_m_s": 7.866500000000001,
+  "dwell_s": 22.3,
+  "paradas_cada_m": 370.53536865016173,
+  "velocidad_muestras": 2830,
+  "episodios_puertas_completos": 40,
+  "dwell_mediana_s": 16.0,
+  "dwell_p85_s": 28.599999999999994,
+  "llegadas_por_sentido": [
+    22,
+    21
+  ],
+  "longitud_m": 15933.020851956953,
+  "conexiones_terminal_m": [
+    18.268034107137684,
+    4.337474421396426
+  ],
+  "viajes": [
+    {
+      "jrn": 6996,
+      "start_hhmm": 1812,
+      "dir": "1",
+      "desde": "2026-09-29T15:03:29.234000+00:00",
+      "hasta": "2026-09-29T15:47:03.265000+00:00",
+      "observaciones": 9184,
+      "puntos": 286
+    },
+    {
+      "jrn": 5357,
+      "start_hhmm": 1853,
+      "dir": "2",
+      "desde": "2026-09-29T15:47:06.276000+00:00",
+      "hasta": "2026-09-29T16:26:01.295000+00:00",
+      "observaciones": 8225,
+      "puntos": 281
+    }
+  ],
+  "muestra_1hz": 4912,
+  "metodo": "posición GPS normalizada y orden cronológico, con reducción espacial de 25 m; vuelta formada por dos sentidos observados",
+  "sha256_csv_privado": "fe1ee7f2fc04edd5960882e25833622ad5b9c1550e05e02cc3771a774de1bfed",
+  "histograma_real": {
+    "limites_m_s": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21
+    ],
+    "frecuencias": [
+      2081,
+      134,
+      190,
+      376,
+      508,
+      492,
+      437,
+      307,
+      190,
+      137,
+      27,
+      11,
+      19,
+      3,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "n": 4912
+  },
+  "rangos_sentido": {
+    "1": [
+      0,
+      8036.86956398083
+    ],
+    "2": [
+      8036.86956398083,
+      15933.020851956953
+    ]
+  }
+}

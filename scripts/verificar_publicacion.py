@@ -14,7 +14,7 @@ for name in filter(None, files):
         errors.append(f'Archivo mayor de 2 MB: {name}')
     if p.suffix in {'.pkl', '.pickle', '.raw', '.log', '.pid', '.jsonl'} or p.name == '.env':
         errors.append(f'Archivo de ejecución o privado: {name}')
-    if p.suffix in {'.jpg', '.jpeg', '.png', '.pdf'}:
+    if p.suffix in {'.jpg', '.jpeg', '.png', '.pdf', '.gif'}:
         continue
     text = p.read_text()
     if re.search(r'gh[pousr]_[A-Za-z0-9]{20,}|lab-hsl-token-\w+-\d+|lab-hsl-20\d\d', text):

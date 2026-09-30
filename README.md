@@ -1,48 +1,80 @@
-# Flota HSL: seguimiento y predicción de llegada
+<div align="center">
 
-[![Verificar proyecto](https://github.com/alanslzrr/hsl-digital-twin/actions/workflows/verificar.yml/badge.svg)](https://github.com/alanslzrr/hsl-digital-twin/actions/workflows/verificar.yml)
+# Flota HSL
 
-Sistema de seguimiento de tranvías de Helsinki con MQTT, Node-RED, InfluxDB y Grafana. Recibe posiciones de la línea 4, valida los mensajes y muestra los vehículos en un mapa. Añade una decisión meteorológica para el plan de invierno y un servicio experimental de estimación del tiempo de llegada (ETA).
+**Seguimiento de tranvías y predicción de llegada en Helsinki**
 
-La memoria explica las decisiones y los resultados. Este repositorio conserva la implementación, las configuraciones, las pruebas y los resultados resumidos que permiten estudiar cómo funciona el sistema.
+[![Grafana 13.2.2](docs/badges/grafana.svg)](https://grafana.com/)
+[![Node-RED 5.0.7](docs/badges/nodered.svg)](https://nodered.org/)
+[![InfluxDB 2.7.12](docs/badges/influxdb.svg)](https://docs.influxdata.com/influxdb/v2/)
+[![Mosquitto 2.1.2](docs/badges/eclipsemosquitto.svg)](https://mosquitto.org/)
 
-## Recorrido de los datos
+[Memoria en PDF](docs/memoria.pdf) · [Puesta en marcha](docs/puesta-en-marcha.md) · [Resultados](docs/resultados.md)
 
-HSL publica posiciones y eventos. Node-RED valida y normaliza los mensajes; el broker local distribuye el estado, Worldmap lo representa e InfluxDB lo conserva. Grafana consulta el histórico. Open-Meteo aporta contexto para la decisión meteorológica y el servicio Python compara un modelo LightGBM con una estimación basada en distancia y velocidad.
+</div>
 
-![Arquitectura del sistema](docs/diagrams/arquitectura.svg)
+Un sistema que recibe las posiciones de la línea 4 de Helsinki, comprueba sus datos y sigue cada tranvía sobre el mapa. El histórico permite consultar retrasos en Grafana, combinar meteorología y puntualidad para el plan de invierno y comparar una predicción de llegada con una estimación basada en distancia y velocidad.
 
-## Dónde empezar
+## El mapa en funcionamiento
 
-- [PDF de la memoria](docs/memoria.pdf): versión maquetada con portada UIE y figuras.
-- [Memoria técnica](docs/memoria.md): explicación del sistema con figuras y resultados.
-- [Puesta en marcha](docs/puesta-en-marcha.md): servicios, configuración privada e importación de flujos.
-- [Contrato y filtros](docs/contrato-mqtt.md): topics completos, unidades y condiciones.
-- [Evaluación y resultados](docs/resultados.md): ventanas, versiones y errores del ETA.
-- [Seguridad y datos](SECURITY.md): qué se publica y qué se conserva fuera de Git.
+![Actualización de los tranvías de la línea 4 en Worldmap](docs/demo/flota-en-vivo.gif)
 
-## Estructura
+Grabación del laboratorio del 30 de septiembre de 2026. Los marcadores cambian de posición a medida que llegan mensajes HSL a Node-RED. La secuencia se reproduce en 16 segundos y se repite automáticamente.
 
-| Carpeta | Contenido |
+## Del mensaje al panel
+
+HSL publica posiciones y eventos por MQTT. Node-RED valida y normaliza los mensajes, distribuye el estado mediante Mosquitto y actualiza Worldmap e InfluxDB. Grafana consulta el histórico. Open-Meteo aporta el contexto meteorológico y un servicio Python ejecuta el modelo LightGBM y evalúa sus predicciones al recibir las llegadas.
+
+![Arquitectura de adquisición, distribución y consulta](docs/diagrams/arquitectura.svg)
+
+| Seguimiento | Plan de invierno | Predicción de llegada |
+| --- | --- | --- |
+| Posiciones, velocidad y estado de cada vehículo | Decisión según nieve prevista y evolución del retraso | Comparación del modelo con una línea base cinemática |
+| Validación, mensajes retenidos y almacenamiento temporal | Comprobación de ventanas completas y datos vigentes | Evaluación por horizonte, viaje, parada y estado de marcha |
+| [Contrato MQTT](docs/contrato-mqtt.md) | [Diagrama de la decisión](docs/diagrams/plan-invierno.svg) | [Diagrama de evaluación](docs/diagrams/evaluacion-eta.svg) |
+
+## Resultados de la comparación
+
+La ventana del 29 de septiembre reúne **20 786 predicciones**. El MAE expresa el error absoluto medio en segundos; un valor menor indica una estimación más cercana a la llegada observada.
+
+| Casos evaluados | Línea base | Modelo |
+| --- | --- | --- |
+| Conjunto de la ventana | 29,39 s | 15,89 s |
+| En marcha, a menos de 30 s de llegar | 3,98 s | 11,62 s |
+
+El modelo reduce el error global de esta ventana, pero la línea base funciona mejor en el grupo más numeroso, cerca de la llegada y con el vehículo en marcha. La [evaluación completa](docs/resultados.md) separa los seis grupos y explica las versiones utilizadas.
+
+![Panel de comparación con las dos series de error y el desglose por grupos](docs/screenshots/grafana-eta-2h-corregida.jpg)
+
+## Explorar el proyecto
+
+| Recurso | Contenido |
 | --- | --- |
-| `src/` | Preparación, entrenamiento y servicio ETA |
-| `flows/` | Flujo completo de Node-RED |
-| `infra/` | Docker, Mosquitto y aprovisionamiento de Grafana |
-| `data/` | Coordenadas de paradas necesarias para calcular distancias |
-| `results/` | Métricas agregadas y registros pequeños de comprobación |
-| `tests/` | Pruebas aisladas; no publican mensajes ni escriben en InfluxDB |
-| `docs/` | Explicaciones, capturas y diagramas |
+| [Memoria técnica](docs/memoria.md) · [PDF](docs/memoria.pdf) | Objetivos, metodología, implementación y resultados con figuras |
+| [Puesta en marcha](docs/puesta-en-marcha.md) | Servicios, credenciales, importación del flujo y ejecución del ETA |
+| [Flujo de Node-RED](flows/hsl.json) | Adquisición, validación, mapa y reglas meteorológicas |
+| [Servicio ETA](src/eta_ml.py) | Preparación de datos, entrenamiento, inferencia y evaluación |
+| [Configuración del entorno](compose.yaml) | Contenedores, red y volúmenes persistentes |
+| [Pruebas de funciones](tests/funciones.test.cjs) | 30 casos aislados sin escribir en el laboratorio |
+| [Resultados guardados](results/) | Métricas agregadas y registros de comprobación |
 
-## Lectura de los resultados
+## Ejecutarlo en local
 
-La comparación cerrada del 29 de septiembre de 2026 contiene 20 786 predicciones: MAE global de 29,39 s para la base y 15,89 s para el modelo. En el grupo mayor, vehículos en marcha a menos de 30 segundos de llegar, gana la base: 3,98 s frente a 11,62 s. El modelo no se presenta como superior en todas las situaciones.
+La [guía de puesta en marcha](docs/puesta-en-marcha.md) explica la configuración del entorno y las conexiones entre servicios. Los logos de la cabecera indican las versiones comprobadas en el laboratorio. La configuración de Docker conserva las etiquetas de imagen definidas en `compose.yaml`.
 
-## Alcance
+El repositorio incluye el código, las paradas, los flujos, los paneles y los resultados resumidos. Los históricos individuales y los pesos del modelo se conservan fuera de Git. Para emitir nuevas predicciones hay que recopilar datos y entrenar un modelo. El sistema no actúa sobre vehículos ni activa recursos físicos.
 
-El proyecto es un entorno de laboratorio. No actúa sobre vehículos ni activa recursos físicos. El histórico individual y el archivo de pesos no se distribuyen en Git. Clonar el repositorio permite consultar la implementación y las métricas; para generar nuevas predicciones hay que configurar el entorno, recopilar datos y disponer de un modelo entrenado.
+Las pruebas de funciones se ejecutan sin iniciar los contenedores.
 
-El historial de Git comienza con la publicación y organización de este repositorio. Las fechas de los ensayos anteriores se conservan en los resultados; los commits no pretenden representar retrospectivamente aquellas sesiones.
+```sh
+node --test tests/funciones.test.cjs
+python3 scripts/verificar_publicacion.py
+```
 
-## Regenerar el PDF
+## Generar la memoria
 
-`bash docs/pdf/build.sh` compila la memoria desde Markdown mediante Pandoc y LaTeX. Requiere `pandoc`, `pdflatex`, `latexmk`, `rsvg-convert` y Python 3. Las capturas y los diagramas se toman de `docs/`; los temporales se excluyen de Git.
+```sh
+bash docs/pdf/build.sh
+```
+
+La compilación utiliza Pandoc, LaTeX, `latexmk`, `rsvg-convert` y Python 3. Toma las figuras de `docs/` y genera `docs/memoria.pdf`.

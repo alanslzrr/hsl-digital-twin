@@ -1,0 +1,25 @@
+name: Verificar proyecto
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  pruebas:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Probar funciones sin servicios externos
+        run: node --test tests/funciones.test.cjs
+      - name: Revisar publicación y métricas
+        run: python scripts/verificar_publicacion.py
+      - name: Validar Compose sin arrancar contenedores
+        env:
+          INFLUX_TOKEN: comprobacion-no-secreta
+          INFLUX_PASSWORD: comprobacion-no-secreta
+          GRAFANA_PASSWORD: comprobacion-no-secreta
+        run: docker compose config --quiet

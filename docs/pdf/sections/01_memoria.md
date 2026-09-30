@@ -10,7 +10,7 @@ El sistema mantiene una representación digital alimentada por el transporte obs
 
 ## Objetivo general
 
-Implementar una cadena de adquisición, tratamiento, almacenamiento y visualización de datos de transporte en tiempo real, incorporando contexto meteorológico y una comparación entre un modelo de ETA y una estimación cinemática sencilla.
+Implementar una cadena de adquisición, tratamiento, almacenamiento y visualización de datos de transporte en tiempo real, incorporando contexto meteorológico, simulación de escenarios y actuación sobre una flota controlada, además de comparar un modelo de ETA con una estimación cinemática sencilla.
 
 ## Objetivos específicos
 
@@ -24,6 +24,8 @@ Implementar una cadena de adquisición, tratamiento, almacenamiento y visualizac
 8. Formular una decisión meteorológica que trate explícitamente los datos ausentes y caducados.
 9. Entrenar un regresor de tiempo de llegada y evaluar sus predicciones frente a una línea base, diferenciando horizontes y estados de marcha.
 10. Organizar el arranque, cierre y conservación de datos del laboratorio.
+11. Reconstruir una ruta real, calibrar un modelo cinemático y asimilar posiciones observadas.
+12. Comparar escenarios y retenciones con una regla que consulte el estado de la simulación.
 
 # Arquitectura y entorno
 
@@ -39,6 +41,7 @@ La configuración de [Docker Compose](https://docs.docker.com/compose/) define c
 | Grafana | Paneles y alertas sobre el histórico | `http://localhost:3000` |
 | MQTTX | Inspección de topics y mensajes | Aplicación de escritorio |
 | Servicio Python ETA | Inferencia y puntuación de predicciones | Proceso externo a los cuatro contenedores |
+| Simulador Python | Escenarios, asimilación y retención de vehículos simulados | Proceso externo conectado al broker local |
 
 El procesamiento sigue la organización de flujos, mensajes y contexto de [Node-RED](https://nodered.org/docs/user-guide/). Utiliza `node-red-contrib-influxdb` y `node-red-contrib-web-worldmap`. El servicio Python emplea pandas, el cliente de InfluxDB, Paho MQTT, scikit-learn y LightGBM.
 
@@ -454,7 +457,7 @@ Ambas distribuciones incluyen detenciones y marcha. La simulación concentra la 
 
 Cada minuto se proyecta una posición real reciente sobre el sentido correspondiente y se calcula el residuo firmado entre observación y predicción. La corrección añade al estado la ganancia multiplicada por ese residuo. Una ganancia uno copia la posición en el instante de corrección; el residuo que se evalúa es el anterior, después de haber evolucionado durante el minuto. El residuo posterior sería cero por construcción y no serviría para valorar la predicción.
 
-La selección de ganancia compara 0,1, 0,3, 0,5, 0,7 y 1 sobre un registro real archivado. Los primeros quince minutos seleccionan por RMSE y los quince siguientes se reservan para evaluación. Se eligió uno; en la parte reservada el RMSE fue 106,02 metros frente a 201,21 con ganancia 0,3, y el MAE 85,14 frente a 151,28 metros. Esta comparación es una reproducción cronológica del registro, distinta de la observación en vivo posterior.
+La selección de ganancia compara 0,1, 0,3, 0,5, 0,7 y 1 sobre un registro real archivado. Los primeros quince minutos seleccionan por RMSE y los quince siguientes se reservan para evaluación. Se eligió uno. La varianza también favorece la ganancia elegida en la mitad de selección, 8 146,52 m² frente a 27 583,56 m² con ganancia 0,3. Esta comprobación coincide con el criterio de RMSE y no utiliza la mitad reservada para elegir. En la parte reservada el RMSE fue 106,02 metros frente a 201,21 con ganancia 0,3, y el MAE 85,14 frente a 151,28 metros. Esta comparación es una reproducción cronológica del registro, distinta de la observación en vivo posterior.
 
 \begin{figure}[htbp]
 \centering

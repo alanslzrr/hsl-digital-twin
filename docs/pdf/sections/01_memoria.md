@@ -2,7 +2,7 @@
 
 Esta práctica desarrolla un sistema de seguimiento de tranvías a partir de la información pública de HSL. Los mensajes de posición y los eventos de servicio se reciben por MQTT, se procesan en Node-RED y se distribuyen a un broker local, un mapa y una base de datos temporal. Grafana permite consultar la evolución del retraso y las decisiones generadas por el sistema.
 
-Sobre esta infraestructura se implementaron dos ampliaciones: una regla de activación del plan de invierno, que combina meteorología y retrasos, y un servicio experimental de predicción del tiempo de llegada a una parada. La línea utilizada para el procesamiento continuo fue la `1004`, correspondiente a la línea 4. Las primeras exploraciones incluyeron otras líneas y el conjunto de tranvías para estudiar los topics y el caudal.
+Sobre esta infraestructura se implementaron una regla de activación del plan de invierno, que combina meteorología y retrasos, y un servicio experimental de predicción del tiempo de llegada a una parada. La línea utilizada para el procesamiento continuo fue la `1004`, correspondiente a la línea 4. Las primeras exploraciones incluyeron otras líneas y el conjunto de tranvías para estudiar los topics y el caudal.
 
 El sistema mantiene una representación digital alimentada por el transporte observado. El mapa, las alarmas y las predicciones permiten consultar y analizar su estado; no se implementó un canal de actuación sobre los vehículos. La decisión meteorológica se publica como salida del laboratorio.
 
@@ -61,7 +61,7 @@ La figura \ref{fig:practica-1} muestra el flujo principal después de integrar l
 \begin{figure}[H]
 \centering
 \includegraphics[width=\linewidth]{../figures/node-red-flujo-validacion.jpg}
-\caption{Flujo principal de adquisición, validación y distribución. Fuente: captura del laboratorio.}
+\caption{Flujo principal de adquisición, validación y distribución. Captura del laboratorio.}
 \label{fig:practica-1}
 \end{figure}
 
@@ -69,11 +69,11 @@ La figura \ref{fig:practica-1} muestra el flujo principal después de integrar l
 
 El trabajo se organizó de forma incremental. Primero se inspeccionaron mensajes en terminal y MQTTX; después se trasladó la suscripción a Node-RED. La normalización permitió reutilizar un mismo contrato en el mapa, el almacenamiento y las reglas. Las ampliaciones se construyeron cuando la cadena de posiciones ya funcionaba.
 
-Cada etapa se comprobó con el resultado que producía: mensajes crudos para las suscripciones, contadores para la validación, consultas para la persistencia y paneles para las agregaciones. Las pruebas controladas se identificaron como sintéticas. Las pruebas posteriores de funciones se ejecutaron en memoria, sin publicar datos ni añadir registros a InfluxDB.
+Cada etapa se comprobó a partir de sus resultados. Se utilizaron mensajes crudos para las suscripciones, contadores para la validación, consultas para la persistencia y paneles para las agregaciones. Las pruebas controladas se identificaron como sintéticas. Las pruebas posteriores de funciones se ejecutaron en memoria, sin publicar datos ni añadir registros a InfluxDB.
 
 Las fechas se compararon en UTC. Algunas interfaces muestran la hora de Madrid; el 29 y el 30 de septiembre la diferencia era de dos horas. En las capturas se conserva el rango temporal de la interfaz, mientras que las tablas de evaluación indican expresamente UTC.
 
-Durante el desarrollo se corrigieron problemas detectados al observar los resultados: duplicados en el ranking de vehículos, conversión de valores nulos o vacíos a cero, medias horarias calculadas sobre grupos incorrectos y emparejamientos incompletos de predicciones y llegadas. Los apartados siguientes describen el funcionamiento resultante y, cuando afecta a una métrica, la versión que la produjo.
+Durante el desarrollo se corrigieron problemas detectados al observar los resultados, como duplicados en el ranking de vehículos, conversión de valores nulos o vacíos a cero, medias horarias calculadas sobre grupos incorrectos y emparejamientos incompletos de predicciones y llegadas. Los apartados siguientes describen el funcionamiento resultante y, cuando afecta a una métrica, la versión que la produjo.
 
 # Adquisición MQTT y selección de mensajes
 
@@ -81,7 +81,7 @@ Durante el desarrollo se corrigieron problemas detectados al observar los result
 
 HSL organiza los mensajes por tipo de evento, medio de transporte, vehículo, línea y sentido. Al principio se escucharon los tranvías para entender esa estructura; después se redujo la adquisición a la línea 4. Para estudiar un único sentido bastó con añadir esa condición al filtro, sin modificar el contenido de los mensajes.
 
-Los comodines permiten seleccionar grupos completos del árbol: uno ocupa un nivel y el otro admite los niveles restantes. Los filtros exactos y sus ejemplos están en el [contrato MQTT del repositorio](https://github.com/alanslzrr/hsl-digital-twin/blob/191f7923b739ae029eecfeedafa36d2fff82bacf/docs/contrato-mqtt.md). La memoria se centra aquí en qué se seleccionó y qué se observó.
+Los comodines permiten seleccionar grupos completos del árbol. Uno ocupa un nivel y el otro admite los niveles restantes. Los filtros exactos y sus ejemplos están en el [contrato MQTT del repositorio](https://github.com/alanslzrr/hsl-digital-twin/blob/191f7923b739ae029eecfeedafa36d2fff82bacf/docs/contrato-mqtt.md). La memoria se centra aquí en qué se seleccionó y qué se observó.
 
 La prueba del sentido 1 produjo 360 líneas y 90 mensajes distintos en 30 segundos, repartidos entre tres vehículos. La repetición de cada mensaje cuatro veces se observó en esa captura y se tuvo en cuenta al calcular la frecuencia por vehículo.
 
@@ -107,21 +107,21 @@ El payload de referencia ocupa 303 bytes y la selección compacta de siete campo
 
 ## Normalización
 
-La función de normalización extrae el modo, el operador y el vehículo del topic, y transforma el contenido de `VP` en dos mensajes:
+La función de normalización extrae el modo, el operador y el vehículo del topic, y transforma el contenido de `VP` en los dos mensajes siguientes.
 
 | Topic | Contenido principal |
 | --- | --- |
 | Posición del vehículo | `lat`, `lon`, `spd`, `hdg`, `ts`, `src`; posteriormente distancia, parada y viaje |
 | Estado del vehículo | Línea, sentido, `retraso_s`, puertas, parada, viaje, fecha y fuente |
 
-La transformación cambia `long` por `lon` y expresa las puertas mediante un estado legible. Se mantiene el signo original del retraso: los valores negativos representan retraso y los positivos adelanto.
+La transformación cambia `long` por `lon` y expresa las puertas mediante un estado legible. Se mantiene el signo original del retraso. Los valores negativos representan retraso y los positivos adelanto.
 
 Ambos mensajes se publican con QoS 0 y retención en el broker local. Sus nombres completos y campos están en el [contrato de mensajes](https://github.com/alanslzrr/hsl-digital-twin/blob/191f7923b739ae029eecfeedafa36d2fff82bacf/docs/contrato-mqtt.md). Esto permite que un suscriptor nuevo recupere el último estado publicado de cada vehículo. En MQTTX se comprobó la recepción de una posición retenida mientras la entrada externa estaba desactivada (figura \ref{fig:practica-2}).
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=\linewidth]{../figures/mqttx-posicion-retained.jpg}
-\caption{Posición local con identificación Retained en MQTTX. Fuente: captura del laboratorio.}
+\caption{Posición local con identificación Retained en MQTTX. Captura del laboratorio.}
 \label{fig:practica-2}
 \end{figure}
 
@@ -129,7 +129,7 @@ La retención pertenece al broker; la caducidad visual del mapa es un mecanismo 
 
 ## Validación y cuarentena
 
-La entrada MQTT se recibe como texto y se valida antes de la normalización. Se rechazan mensajes nulos, vacíos, no interpretables como JSON o que no contienen un objeto `VP` válido. También se comprueban las siguientes condiciones:
+La entrada MQTT se recibe como texto y se valida antes de la normalización. Se rechazan mensajes nulos, vacíos, no interpretables como JSON o que no contienen un objeto `VP` válido. También se comprueban las siguientes condiciones.
 
 - Posición de origen `GPS`.
 - Coordenadas numéricas y finitas dentro de `59.9–60.5` de latitud y `24.4–25.5` de longitud.
@@ -151,7 +151,7 @@ La figura \ref{fig:practica-3} muestra ocho vehículos y la ficha de uno de ello
 \begin{figure}[H]
 \centering
 \includegraphics[width=\linewidth]{../figures/worldmap-vehiculos.jpg}
-\caption{Mapa de la flota con datos de un vehículo. Fuente: captura del laboratorio.}
+\caption{Mapa de la flota con datos de un vehículo. Captura del laboratorio.}
 \label{fig:practica-3}
 \end{figure}
 
@@ -172,7 +172,7 @@ Para evitar que un vehículo aparezca una vez por cada sentido, el ranking agrup
 \begin{figure}[H]
 \centering
 \includegraphics[width=\linewidth]{../figures/grafana-flota-hsl-actual.jpg}
-\caption{Dashboard base con cinco vehículos distintos y ocho activos. Fuente: captura del laboratorio.}
+\caption{Dashboard base con cinco vehículos distintos y ocho activos. Captura del laboratorio.}
 \label{fig:practica-4}
 \end{figure}
 
@@ -182,11 +182,11 @@ La alarma local detecta puertas abiertas con velocidad superior a 3 m/s. Node-RE
 
 Durante diez minutos de observación no se registraron activaciones. Se utilizó el vehículo sintético `00999`, a 8 m/s y con puertas abiertas, para comprobar el intercambio `PUBLISH`–`PUBACK`. Cinco pruebas dieron latencias entre 2 y 3 milisegundos, medidas desde la fecha del mensaje hasta el suscriptor en el entorno de laboratorio.
 
-En Grafana se configuró otra condición: último `retraso_s` de la línea 4 inferior a −300 s, con evaluación cada 10 segundos y espera pendiente de 10 segundos. El vehículo `00648`, sentido 2, registró −301 s a las 12:48:02.292Z y la alerta pasó a `Alerting` a las 12:48:20Z. La diferencia fue de aproximadamente 17,7 segundos.
+En Grafana se configuró una condición sobre el último `retraso_s` de la línea 4 inferior a −300 s, con evaluación cada 10 segundos y espera pendiente de 10 segundos. El vehículo `00648`, sentido 2, registró −301 s a las 12:48:02.292Z y la alerta pasó a `Alerting` a las 12:48:20Z. La diferencia fue de aproximadamente 17,7 segundos.
 
 Estas medidas ilustran dos mecanismos con condiciones y temporizaciones distintas; no son un ensayo comparativo del mismo evento. La alarma local tampoco incorpora todavía una persistencia de varias lecturas para filtrar transitorios entre velocidad y puertas.
 
-# Reto R1: decisión del plan de invierno
+# Reto R1 · Decisión del plan de invierno
 
 ## Contexto meteorológico
 
@@ -198,10 +198,10 @@ Se rechaza un contexto con fecha ilegible, antigüedad superior a dos horas o m�
 
 ## Ventanas y regla
 
-Cada cinco minutos se calculan dos medias de retraso:
+Cada cinco minutos se calculan dos medias de retraso.
 
-- `ahora`: últimos diez minutos.
-- `antes`: intervalo comprendido entre hace 70 y 60 minutos.
+- `ahora` corresponde a los últimos diez minutos.
+- `antes` corresponde al intervalo comprendido entre hace 70 y 60 minutos.
 
 Se define `empeoramiento = media_antes - media_ahora`. Debido al signo de HSL, un resultado positivo indica que el valor se ha desplazado hacia un mayor retraso. La activación requiere simultáneamente nieve actual o prevista mayor que cero y empeoramiento estrictamente superior a 90 segundos.
 
@@ -209,19 +209,19 @@ La salida incluye `activar`, `valida`, el motivo, las medias empleadas y las fec
 
 El lector del CSV de Influx ignora las medias vacías o no numéricas. El valor numérico cero se conserva como válido. Esta distinción impide que un intervalo sin observaciones se interprete como puntualidad perfecta. El flujo de adquisición y decisión se muestra en la figura \ref{fig:practica-5}.
 
-La figura \ref{fig:plan-invierno} separa las dos preguntas de la regla: primero, si se dispone de información suficiente; después, si coinciden nieve y empeoramiento. Así se entiende por qué «no activar» puede tener dos significados diferentes.
+La figura \ref{fig:plan-invierno} separa las dos preguntas de la regla. Primero, si se dispone de información suficiente; después, si coinciden nieve y empeoramiento. Así se entiende por qué «no activar» puede tener dos significados diferentes.
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=\linewidth]{../figures/plan-invierno.pdf}
-\caption{Decisión del plan de invierno: disponibilidad de datos y condiciones de activación.}
+\caption{Decisión del plan de invierno según la disponibilidad de datos y condiciones de activación.}
 \label{fig:plan-invierno}
 \end{figure}
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=\linewidth]{../figures/node-red-reto-invierno.jpg}
-\caption{Flujo de adquisición meteorológica y decisión por ventanas. Fuente: captura del laboratorio.}
+\caption{Flujo de adquisición meteorológica y decisión por ventanas. Captura del laboratorio.}
 \label{fig:practica-5}
 \end{figure}
 
@@ -233,7 +233,7 @@ Los siguientes registros pertenecen al 29 de septiembre, en UTC. En los tres cas
 
 | Hora | Media ahora | Media antes | Empeoramiento | Resultado |
 | --- | ---: | ---: | ---: | --- |
-| 12:59:41 | −52,73 s | +41,72 s | +94,44 s | Válida, no activar: falta nieve |
+| 12:59:41 | −52,73 s | +41,72 s | +94,44 s | Válida, no activar por falta de nieve |
 | 13:06:16 | −8,17 s | +51,15 s | +59,32 s | Válida, no activar |
 | 13:15:34 | +15,22 s | +14,84 s | −0,38 s | Válida, no activar |
 
@@ -244,13 +244,13 @@ En la figura \ref{fig:practica-6}, del 30 de septiembre, a las 07:24:41 de Madri
 \begin{figure}[H]
 \centering
 \includegraphics[width=\linewidth]{../figures/grafana-retraso-nieve-actual.jpg}
-\caption{Retraso, nieve y motivos de las decisiones en Grafana. Fuente: captura del laboratorio.}
+\caption{Retraso, nieve y motivos de las decisiones en Grafana. Captura del laboratorio.}
 \label{fig:practica-6}
 \end{figure}
 
 Estos casos permiten comprobar la ejecución de la regla. Para estudiar su utilidad operativa sería necesario relacionar los retrasos con incidencias meteorológicas, recursos disponibles, costes y resultados de actuaciones. Una reconstrucción histórica debe utilizar únicamente el contexto disponible en cada instante.
 
-# Reto S-A: predicción de llegada
+# Reto S-A · Predicción de llegada
 
 ## Definición del problema y variables
 
@@ -274,7 +274,7 @@ Las posiciones se ordenan y se conserva una por vehículo y segundo. El empareja
 
 La meteorología se asocia hacia atrás en el tiempo. La media de retraso de la línea se calcula con una ventana de 600 segundos y un desplazamiento previo de una observación. La separación entrenamiento/prueba usa un corte temporal 80/20. Una fila anterior al corte solo entra en entrenamiento si su llegada también había ocurrido antes o en ese instante.
 
-El regresor configurado es [`LGBMRegressor`, de LightGBM](https://lightgbm.readthedocs.io/en/stable/Python-API.html), con 400 estimadores, tasa de aprendizaje 0,05 y 31 hojas. Se calcula el error absoluto medio, en segundos:
+El regresor configurado es [`LGBMRegressor`, de LightGBM](https://lightgbm.readthedocs.io/en/stable/Python-API.html), con 400 estimadores, tasa de aprendizaje 0,05 y 31 hojas. Se calcula el error absoluto medio, en segundos.
 
 ```text
 MAE = suma(|ETA_predicho − tiempo_real_restante|) / número_de_predicciones
@@ -282,7 +282,7 @@ MAE = suma(|ETA_predicho − tiempo_real_restante|) / número_de_predicciones
 
 ## Evolución del entrenamiento
 
-El piloto original utilizó posiciones de las 12:52:11 a las 13:06:31 UTC del 29 de septiembre: 8 205 posiciones a 1 Hz, 70 llegadas y 6 250 filas preparadas de ocho vehículos. El conjunto se dividió en 5 000 filas de entrenamiento y 1 250 de prueba.
+El piloto original utilizó posiciones de las 12:52:11 a las 13:06:31 UTC del 29 de septiembre. Se recopilaron 8 205 posiciones a 1 Hz, 70 llegadas y 6 250 filas preparadas de ocho vehículos. El conjunto se dividió en 5 000 filas de entrenamiento y 1 250 de prueba.
 
 | Grupo del piloto original | MAE base | MAE modelo |
 | --- | ---: | ---: |
@@ -298,7 +298,7 @@ El archivo guardado `piloto-1-refit` procede de un reajuste del piloto original,
 
 \Needspace{14\baselineskip}
 
-La importancia de variables registrada por LightGBM fue la siguiente:
+La importancia de variables registrada por LightGBM se recoge en la tabla siguiente.
 
 | Variable | Piloto original | Ajuste con parada y viaje |
 | --- | ---: | ---: |
@@ -327,7 +327,7 @@ La figura \ref{fig:evaluacion-eta} muestra el cambio de evaluación. Cada posici
 \label{fig:evaluacion-eta}
 \end{figure}
 
-El [resumen de resultados de `piloto-1`](https://github.com/alanslzrr/hsl-digital-twin/blob/191f7923b739ae029eecfeedafa36d2fff82bacf/results/eta-vivo-2h.json) abarca desde las 13:51:58.166 hasta las 15:54:04.165 UTC del 29 de septiembre. Contiene 20 786 predicciones, con los siguientes resultados:
+El [resumen de resultados de `piloto-1`](https://github.com/alanslzrr/hsl-digital-twin/blob/191f7923b739ae029eecfeedafa36d2fff82bacf/results/eta-vivo-2h.json) abarca desde las 13:51:58.166 hasta las 15:54:04.165 UTC del 29 de septiembre. Contiene 20 786 predicciones, con los resultados de la tabla siguiente.
 
 | Horizonte real | Estado | n | MAE base | MAE modelo |
 | --- | --- | ---: | ---: | ---: |
@@ -352,7 +352,7 @@ Los puntos etiquetados a las 14:00 UTC tienen MAE de 29,52 s para la base y 15,5
 \begin{figure}[H]
 \centering
 \includegraphics[width=\linewidth]{../figures/grafana-eta-2h-corregida.jpg}
-\caption{Resultados de la comparación ETA y seis grupos de evaluación. Fuente: captura del laboratorio.}
+\caption{Resultados de la comparación ETA y seis grupos de evaluación. Captura del laboratorio.}
 \label{fig:practica-7}
 \end{figure}
 
@@ -367,7 +367,7 @@ El popup exige coincidencia de viaje y parada, ETA no mayor de 15 segundos, posi
 \begin{figure}[H]
 \centering
 \includegraphics[width=\linewidth]{../figures/worldmap-eta-en-vivo.jpg}
-\caption{Popup con las dos estimaciones, parada, versión y fecha. Fuente: captura del laboratorio.}
+\caption{Popup con las dos estimaciones, parada, versión y fecha. Captura del laboratorio.}
 \label{fig:practica-8}
 \end{figure}
 
@@ -381,7 +381,7 @@ Los intercambios QoS se comprobaron por separado en el broker. Las consultas de 
 
 La flota observada permite comprobar el procesamiento continuo y la coherencia de las reglas. La evaluación del modelo contiene muchas predicciones consecutivas de los mismos viajes, por lo que 20 786 filas no equivalen a 20 786 situaciones independientes. El piloto tampoco permite analizar el efecto de la nieve, que permaneció constante. Por estas razones se presentan los grupos de evaluación junto con la media global.
 
-Las siguientes mejoras se desprenden de los problemas observados: caducar automáticamente los retenidos de vehículos inactivos, exigir persistencia en la alarma de puertas, usar distancia por recorrido en el ETA y evaluar los errores también por viaje. Una eventual combinación de modelo y base tendría que decidirse con variables disponibles al emitir la predicción, no con el horizonte real conocido después.
+Las siguientes mejoras se desprenden de los problemas observados. Se propone caducar automáticamente los retenidos de vehículos inactivos, exigir persistencia en la alarma de puertas, usar distancia por recorrido en el ETA y evaluar los errores también por viaje. Una eventual combinación de modelo y base tendría que decidirse con variables disponibles al emitir la predicción, no con el horizonte real conocido después.
 
 # Cierre, seguridad y recuperación
 
@@ -405,7 +405,7 @@ En el ETA, el emparejamiento por viaje y parada y la conservación de todas las 
 
 # Repositorio del proyecto
 
-[Flota HSL: seguimiento y predicción de llegada](https://github.com/alanslzrr/hsl-digital-twin) reúne el código, los flujos, la configuración del entorno y los resultados de este sistema. Está organizado para poder seguir la explicación de la memoria y consultar el detalle técnico cuando sea necesario.
+[Flota HSL · Seguimiento y predicción de llegada](https://github.com/alanslzrr/hsl-digital-twin) reúne el código, los flujos, la configuración del entorno y los resultados de este sistema. Está organizado para poder seguir la explicación de la memoria y consultar el detalle técnico cuando sea necesario.
 
 | Parte del sistema | Dónde consultarla |
 | --- | --- |
@@ -417,17 +417,13 @@ En el ETA, el emparejamiento por viaje y parada y la conservación de todas las 
 | Regresiones ejecutables | [Pruebas de funciones](https://github.com/alanslzrr/hsl-digital-twin/blob/191f7923b739ae029eecfeedafa36d2fff82bacf/tests/funciones.test.cjs) |
 | Esquemas de la memoria | [Diagramas editables](https://github.com/alanslzrr/hsl-digital-twin/tree/d6c48eae33228305245d80e7053f445722844890/docs/diagrams/) |
 
-Los enlaces al código y a los resultados apuntan a una revisión concreta para que el contenido citado permanezca identificable aunque el proyecto evolucione. El repositorio se publica inicialmente como privado; sus enlaces requieren una cuenta con acceso.
-
-Las tareas de publicación se organizaron mediante issues y pull requests, con commits pequeños en español. Esta organización corresponde a la preparación del repositorio; las fechas de los ensayos anteriores siguen recogidas en los resultados.
-
 Se incluyen métricas agregadas y capturas seleccionadas. Los históricos individuales, los pesos binarios, los logs y las credenciales permanecen fuera de Git. El [manifiesto de artefactos](https://github.com/alanslzrr/hsl-digital-twin/blob/191f7923b739ae029eecfeedafa36d2fff82bacf/results/artifact-manifest.json) registra el tamaño y la huella de los archivos principales conservados localmente.
 
 \clearpage
 
 # Documentación y recursos
 
-Los siguientes enlaces llevan a la documentación oficial de los componentes utilizados. Complementan las decisiones de implementación descritas en la memoria; los resultados numéricos proceden de los registros del laboratorio. Fecha de consulta: 30 de septiembre de 2026.
+Los siguientes enlaces llevan a la documentación oficial de los componentes utilizados. Complementan las decisiones de implementación descritas en la memoria; los resultados numéricos proceden de los registros del laboratorio. Consultados el 30 de septiembre de 2026.
 
 1. **Digitransit / HSL. High-frequency positioning.** Estructura de topics y mensajes de posición y eventos del transporte. [Consultar documentación](https://digitransit.fi/en/developers/apis/5-realtime-api/vehicle-positions/high-frequency-positioning/).
 2. **Node-RED. User Guide.** Editor, mensajes, funciones, contexto y gestión de nodos. [Consultar documentación](https://nodered.org/docs/user-guide/).

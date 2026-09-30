@@ -213,5 +213,7 @@
       "criterio_recuperacion": "CV ≤ 0,3 durante 300 s consecutivos, desde el fin de la parada retenida",
       "horizonte_despues_orden_s": 5400
     }
-  ]
+  ],
+  "ruta_escenarios_y_retenciones": "sintética; parámetros nominales, sin asimilación",
+  "retraso_simulado": "respecto al horario interno del modelo, no al horario comercial HSL"
 }

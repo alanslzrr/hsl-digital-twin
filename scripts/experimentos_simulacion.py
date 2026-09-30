@@ -18,6 +18,8 @@ for beta in [0,.12]:
    if s.kpi()['irregularidad']>=.6 and crossing is None:crossing=t+1
   item={'beta':beta,'escenario':scenario,'duracion_sim_s':2400,'irregularidad_final':s.kpi()['irregularidad'],'primer_cv_06_s':crossing,'retraso_final_s':s.kpi()['retraso_medio_s']}
   bunch.append(item)
+summary['ruta_escenarios_y_retenciones']='sintética; parámetros nominales, sin asimilación'
+summary['retraso_simulado']='respecto al horario interno del modelo, no al horario comercial HSL'
 summary['pasajeros_y_nieve']=bunch
 # S3. Distribuciones comparables, sin guardar datos pesados en el repositorio.
 rd=json.loads((ROOT/'data/ruta-linea-4.json').read_text());cal=rd['calibracion'];route=Ruta(rd['puntos'])
